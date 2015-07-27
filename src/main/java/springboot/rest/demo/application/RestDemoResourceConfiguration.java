@@ -1,4 +1,4 @@
-package datavalidator.application;
+package springboot.rest.demo.application;
 
 import java.util.UUID;
 

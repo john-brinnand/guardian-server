@@ -1,4 +1,4 @@
-package datavalidator.application;
+package springboot.rest.demo.application;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.util.ByteArrayBuilder;
 
 @Slf4j
 @RestController
-@RequestMapping("/v1/eventHandler")
+@RequestMapping("/v1/restDemoResource")
 public class RestDemoHandlerResource {
 	
 	@RequestMapping("/ping")
