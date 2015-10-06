@@ -10,7 +10,7 @@
 		</layout>
 	</appender>
 
-	<logger name="event-handler-service-logger" level="info" additivity="false">
+	<logger name="guardian-logger" level="info" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>
 

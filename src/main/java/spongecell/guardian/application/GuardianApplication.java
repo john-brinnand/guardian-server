@@ -1,4 +1,4 @@
-package springboot.rest.demo.application;
+package spongecell.guardian.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -8,10 +8,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication
 @EnableAutoConfiguration
-@EnableConfigurationProperties(RestDemoResourceConfiguration.class)
+@EnableConfigurationProperties(GuardianResourceConfiguration.class)
 @EnableWebMvc
-public class RestDemoResourceApplication {
+public class GuardianApplication {
     public static void main(String[] args) {
-        SpringApplication.run(RestDemoResourceApplication.class, args);
+        SpringApplication.run(GuardianApplication.class, args);
     }	
 }

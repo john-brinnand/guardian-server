@@ -1,4 +1,4 @@
-package sprinboot.rest.demo.test;
+package spongecell.guardian.test;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -57,7 +57,7 @@ public class AnnotationTests extends AbstractTestNGSpringContextTests{
 	@ConfigurationProperties("template.properties")
 	public static class TemplateProperties {
 		private String templateId = "123";
-		private String zookeeperConnect = "192.168.33.1.2181";		
+		private String zookeeperConnect = "192.168.33.1.2182";		
 		private String kafkaBrokers = "192.168.33.1:9092"; 
 		private String groupId = "defaultGroup";
 		

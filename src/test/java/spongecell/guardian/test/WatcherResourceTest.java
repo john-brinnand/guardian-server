@@ -1,4 +1,4 @@
-package sprinboot.rest.demo.test;
+package spongecell.guardian.test;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import springboot.rest.demo.application.RestDemoResourceConfiguration;
+import spongecell.guardian.application.GuardianResourceConfiguration;
 
 /**
  * Notes: @WebAppConfiguration sets up, among other things,
@@ -39,13 +39,13 @@ import springboot.rest.demo.application.RestDemoResourceConfiguration;
 @EnableAutoConfiguration
 @EnableWebMvc
 @WebAppConfiguration
-@ContextConfiguration(classes = { springboot.rest.demo.application.RestDemoResourceApplication.class })
-public class RestDemoResourceTest extends AbstractTestNGSpringContextTests {
+@ContextConfiguration(classes = { spongecell.guardian.application.GuardianApplication.class })
+public class WatcherResourceTest extends AbstractTestNGSpringContextTests {
 	private String data;
-	private final static String BASE_URI = "/v1/restDemoResource";
+	private final static String BASE_URI = "/v1/guardian";
 	private final static String PING = "ping";
 	@Autowired WebApplicationContext wac;
-	@Autowired RestDemoResourceConfiguration config;
+	@Autowired GuardianResourceConfiguration config;
 
 	@Test(priority = 1, groups = "integration")
 	public void validateEventHandlerPing() throws Exception {

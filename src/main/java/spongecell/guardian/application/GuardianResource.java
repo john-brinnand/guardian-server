@@ -1,4 +1,4 @@
-package springboot.rest.demo.application;
+package spongecell.guardian.application;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +18,8 @@ import com.fasterxml.jackson.core.util.ByteArrayBuilder;
 
 @Slf4j
 @RestController
-@RequestMapping("/v1/restDemoResource")
-public class RestDemoHandlerResource {
+@RequestMapping("/v1/guardian")
+public class GuardianResource {
 	
 	@RequestMapping("/ping")
 	public ResponseEntity<?> icmpEcho(HttpServletRequest request) throws Exception {
@@ -47,6 +47,15 @@ public class RestDemoHandlerResource {
 		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
 		return response; 
 	}	
+	
+//	@RequestMapping(method = RequestMethod.GET)
+//	public ResponseEntity<?> validator(HttpServletRequest request,
+//			@RequestParam(value = "name") String name, 
+//			@RequestParam(value="batchId") String batchId ) throws Exception {
+//		String content =  name + ":" + "testValue";
+//		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
+//		return response; 
+//	}	
 	
 	@RequestMapping(method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRequestParamEndpoint(HttpServletRequest request,

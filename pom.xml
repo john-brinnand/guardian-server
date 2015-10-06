@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>handler</groupId>
-	<artifactId>event-handler-service</artifactId>
+	<groupId>spongecell</groupId>
+	<artifactId>guardian</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>event-handler-service</name>
+	<name>guardian</name>
 	<url>http://maven.apache.org</url>
 
 	<parent>
@@ -16,13 +16,27 @@
 		<version>1.2.2.RELEASE</version>
 		<relativePath />
 	</parent>
-
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.projectlombok.version>1.16.4</org.projectlombok.version>
 		<org.testng.version>6.8.8</org.testng.version>
 		<org.easymock.version>3.3.1</org.easymock.version>
+		<org.easymock.version>3.3.1</org.easymock.version>
+		<spongecell.webhdfs.version>0.0.1-SNAPSHOT</spongecell.webhdfs.version>
 	</properties>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.drools</groupId>
+				<artifactId>drools-bom</artifactId>
+				<type>pom</type>
+				<version>6.1.0.Final</version>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
@@ -64,6 +78,13 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		<!-- WebHDFS -->
+		<dependency>
+			<groupId>spongecell</groupId>
+			<artifactId>webhdfs</artifactId>
+			<version>${spongecell.webhdfs.version}</version>
+		</dependency>
 
 		<!-- Servlet -->
 		<dependency>
@@ -96,6 +117,18 @@
 			<artifactId>event-handler</artifactId>
 			<version>1.0</version>
 		</dependency>
+		
+		<!-- Drools -->	
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-compiler</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
 	</dependencies>
 
 	<build>
