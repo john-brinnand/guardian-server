@@ -1,0 +1,15 @@
+package spongecell.guardian.rules.core
+ 
+import spongecell.guardian.model.HDFSDirectory 
+ 
+dialect "mvel"
+ 
+/*
+ * This rule checks that the number of files in a directory.
+ */
+rule "HDFSDirectory Children Check"
+    when
+        $hdfsDir : HDFSDirectory(numChildren == 2)               
+    then
+        System.out.println("Number of children is: " + $hdfsDir.numChildren);
+end

@@ -16,7 +16,7 @@
 		<version>1.2.2.RELEASE</version>
 		<relativePath />
 	</parent>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.projectlombok.version>1.16.4</org.projectlombok.version>
@@ -25,7 +25,7 @@
 		<org.easymock.version>3.3.1</org.easymock.version>
 		<spongecell.webhdfs.version>0.0.1-SNAPSHOT</spongecell.webhdfs.version>
 	</properties>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -50,6 +50,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -60,14 +61,17 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -78,7 +82,14 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
+		<!-- Event Handler -->
+		<dependency>
+			<groupId>spongecell-spring-libraries.events</groupId>
+			<artifactId>event-handler</artifactId>
+			<version>1.0</version>
+		</dependency>
+
 		<!-- WebHDFS -->
 		<dependency>
 			<groupId>spongecell</groupId>
@@ -98,27 +109,22 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>${org.testng.version}</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>${org.easymock.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
-		<!-- Event Handler -->
-		<dependency>
-			<groupId>spongecell-spring-libraries.events</groupId>
-			<artifactId>event-handler</artifactId>
-			<version>1.0</version>
-		</dependency>
-		
-		<!-- Drools -->	
+
+		<!-- Drools -->
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-api</artifactId>
@@ -128,7 +134,6 @@
 			<artifactId>drools-compiler</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		
 	</dependencies>
 
 	<build>

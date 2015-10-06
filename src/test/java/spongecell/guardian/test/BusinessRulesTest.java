@@ -40,8 +40,8 @@ public class BusinessRulesTest extends AbstractTestNGSpringContextTests {
 			InputStream ruleIn = getClass().getResourceAsStream(
 					"/spongecell/guardian/rules/core/person.drl");
 			Assert.assertNotNull(ruleIn);
-			String path = "src/main/resources/spongecell/guardian/rules/core/"
-					+ rule;
+			String path = "src/main/resources/spongecell/"
+					+ "guardian/rules/core/" + rule;
 			kieFileSystem.write(path,
 					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
 		}
@@ -70,13 +70,26 @@ public class BusinessRulesTest extends AbstractTestNGSpringContextTests {
 	 * test will therefore fail, if the environment is not configured correctly.
 	 */
 	@Test
-	public void testPersonRule() {
+	public void testPersonAgeRule() {
 		Object[] facts = { new Person("John Doe", 21) };
-		logger.info ("Running the testPersonRule");
+		log.info ("Running the testPersonRule");
 		
 		for (Object fact : facts) {
 			kieSession.insert(fact);
 		}
-		kieSession.fireAllRules();
+		int numRules = kieSession.fireAllRules();
+		Assert.assertEquals(1, numRules);
 	}
+	
+	@Test
+	public void testPersonNameRule() {
+		Object[] facts = { new Person("John Doe", 21) };
+		log.info ("Running the testPersonRule");
+		
+		for (Object fact : facts) {
+			kieSession.insert(fact);
+		}
+		int numRules = kieSession.fireAllRules();
+		Assert.assertEquals(1, numRules);
+	}	
 }
