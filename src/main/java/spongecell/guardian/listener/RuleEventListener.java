@@ -31,7 +31,7 @@ public class RuleEventListener extends DefaultAgendaEventListener {
 	@Override
 	public void afterMatchFired(AfterMatchFiredEvent event) {
 		final Rule rule = event.getMatch().getRule();
-		log.info("AfterMatchFiredEvent - Rule is: {} ", rule.getName());
+		log.info("AfterMatchFiredEvent - Rule name: {}, id : {}", rule.getName(), rule.getId());
 		log.trace(event.getClass().getSimpleName());
 	}
 }

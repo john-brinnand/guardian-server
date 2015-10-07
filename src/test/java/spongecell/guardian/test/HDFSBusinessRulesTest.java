@@ -31,6 +31,7 @@ import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.Message.Level;
+import org.kie.api.event.rule.DebugRuleRuntimeEventListener;
 import org.kie.api.io.KieResources;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
@@ -95,6 +96,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 
 		kieSession = kieContainer.newKieSession();
 		kieSession.addEventListener(new RuleEventListener());
+		kieSession.addEventListener(new DebugRuleRuntimeEventListener());
 	}
 	@Test
 	public void validateWorkFlowCreateDirFile() throws NoSuchMethodException, 
@@ -230,7 +232,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			Assert.assertEquals(fileStatusNode.get(PERMISSION).asText(), DEFAULT_PERMISSIONS);
 		}
 		//*******************************************
-		// Test the rule here.
+		// Test the rule.
 		//*******************************************
 		HDFSDirectory hdfsDir = new HDFSDirectory();
 		hdfsDir.setNumChildren(fileStatus.size());
