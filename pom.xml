@@ -24,6 +24,7 @@
 		<org.easymock.version>3.3.1</org.easymock.version>
 		<org.easymock.version>3.3.1</org.easymock.version>
 		<spongecell.webhdfs.version>0.0.1-SNAPSHOT</spongecell.webhdfs.version>
+		<org.apache.commons-email>1.4</org.apache.commons-email>
 	</properties>
 
 	<dependencyManagement>
@@ -50,7 +51,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -61,17 +62,17 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -129,10 +130,18 @@
 			<groupId>org.kie</groupId>
 			<artifactId>kie-api</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.drools</groupId>
 			<artifactId>drools-compiler</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Apache commons email; wraps JavaMail -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-email</artifactId>
+			<version>${org.apache.commons-email}</version>
 		</dependency>
 	</dependencies>
 

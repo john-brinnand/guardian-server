@@ -42,6 +42,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import spongecell.guardian.listener.RuleEventListener;
 import spongecell.guardian.model.HDFSDirectory;
 import spongecell.webhdfs.FilePath;
 import spongecell.webhdfs.WebHdfsConfiguration;
@@ -93,9 +94,10 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			kieRepository.getDefaultReleaseId());
 
 		kieSession = kieContainer.newKieSession();
+		kieSession.addEventListener(new RuleEventListener());
 	}
 	@Test
-	public void validateWorkFlowOpsArgsConfiguration() throws NoSuchMethodException, 
+	public void validateWorkFlowCreateDirFile() throws NoSuchMethodException, 
 		SecurityException, UnsupportedEncodingException, URISyntaxException {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
 		
@@ -142,13 +144,13 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		Assert.assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.OK.value());
 	}
 	
-	@Test
+	@Test(dependsOnMethods="validateWorkFlowCreateDirFile")
 	public void validateWorkFlowFileCreateWrite() throws URISyntaxException, IOException {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
 		
 		// Override the default file name.
 		//********************************
-		webHdfsConfig.setFileName("testfile2.txt");
+		webHdfsConfig.setFileName("testfile1.txt");
 		
 		StringEntity entity = new StringEntity("Greetings earthling!\n");
 		
@@ -163,7 +165,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			.addPathSegment(customDTF.format(LocalDate.now()))
 			.build();
 		
-		String fileName = path.getFile().getPath() + File.separator + "testfile2.txt";
+		String fileName = path.getFile().getPath() + File.separator + "testfile1.txt";
 		
 		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
 			.path(path.getFile().getPath())
@@ -182,7 +184,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		Assert.assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.OK.value());	
 	}
 	
-	@Test
+	@Test(dependsOnMethods="validateWorkFlowFileCreateWrite")
 	public void validateWebHdfsListStatus() throws URISyntaxException, IOException {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
 		

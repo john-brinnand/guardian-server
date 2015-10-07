@@ -11,5 +11,5 @@ rule "HDFSDirectory Children Check"
     when
         $hdfsDir : HDFSDirectory(numChildren == 2)               
     then
-        System.out.println("Number of children is: " + $hdfsDir.numChildren);
+        System.out.println("Health check passed: Number of children is: " + $hdfsDir.numChildren);
 end
