@@ -65,6 +65,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @EnableConfigurationProperties ({ WebHdfsConfiguration.class })
 public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	private final static String BASE_PATH = "src/main/resources";
+	private final static String RULES_PATH = "spongecell/guardian/rules/core";
 	private KieSession kieSession;
 	@Autowired WebHdfsWorkFlow.Builder webHdfsWorkFlowBuilder;
 	@Autowired WebHdfsConfiguration webHdfsConfig;
@@ -72,8 +73,8 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	@BeforeTest
 	public void init() {
 		String[] rules = { 
-			"/spongecell/guardian/rules/core/hdfs-directory.drl", 
-			"/spongecell/guardian/rules/core/hdfs-directory-notification.drl"
+			"/" + RULES_PATH + "/" + "hdfs-directory.drl",
+			"/" + RULES_PATH + "/" + "hdfs-directory-notification.drl",
 		}; 
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
@@ -83,8 +84,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		for (String rule : rules) {
 			InputStream ruleIn = getClass().getResourceAsStream(rule);
 			Assert.assertNotNull(ruleIn);
-			String path = "src/main/resources/spongecell/"
-					+ "guardian/rules/core/" + rule;
+			String path = BASE_PATH + "/"  + RULES_PATH + "/" + rule;
 			kieFileSystem.write(path,
 					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
 		}
@@ -196,6 +196,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		int numRules = kieSession.fireAllRules();
 		Assert.assertEquals(4, numRules);
 	}
+	
 	private FilePath getFilePathDTF() {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
 		
