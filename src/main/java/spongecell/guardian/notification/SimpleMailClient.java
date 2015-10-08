@@ -21,17 +21,17 @@ public class SimpleMailClient {
 		//***************************************************
 		log.info ("Sending mail.");
 		// Turning off till we get a group account with general access, 
-		// or a more secure account. 
+		// or a more // secure account. 
 		
-//		Email email = new SimpleEmail();
-//		email.setHostName("smtp.googlemail.com");
-//		email.setSmtpPort(465);
-//		email.setAuthenticator(new DefaultAuthenticator("username", "password"));
-//		email.setSSLOnConnect(true);
-//		email.setFrom("joe@gmail.com");
-//		email.setSubject("TestMail");
-//		email.setMsg("This is a test mail ... :-)");
-//		email.addTo("joe@gmail.com");
-//		email.send();	
+		Email email = new SimpleEmail();
+		email.setHostName("smtp.googlemail.com");
+		email.setSmtpPort(465);
+		email.setAuthenticator(new DefaultAuthenticator("guardian@spongecell.com", "677561726469616e!"));
+		email.setSSLOnConnect(true);
+		email.setFrom("guardian@spongecell.com");
+		email.setSubject("TestMail");
+		email.setMsg("Greetings from your friendly neighborhood Guardian Service. Hope you are having a good day... :-)");
+		email.addTo("john.brinnand@spongecell.com");
+		email.send();	
 	}
 }

@@ -22,10 +22,10 @@ import java.time.format.SignStyle;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
-import org.apache.naming.factory.SendMailFactory;
 import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
@@ -52,7 +52,9 @@ import spongecell.webhdfs.WebHdfsConfiguration;
 import spongecell.webhdfs.WebHdfsOps;
 import spongecell.webhdfs.WebHdfsWorkFlow;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -80,7 +82,6 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 
 		for (String rule : rules) {
 			InputStream ruleIn = getClass().getResourceAsStream(rule);
-//					"/spongecell/guardian/rules/core/hdfs-directory.drl");
 			Assert.assertNotNull(ruleIn);
 			String path = "src/main/resources/spongecell/"
 					+ "guardian/rules/core/" + rule;
@@ -104,22 +105,8 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	@Test
 	public void validateWorkFlowCreateDirFile() throws NoSuchMethodException, 
 		SecurityException, UnsupportedEncodingException, URISyntaxException {
-		Assert.assertNotNull(webHdfsWorkFlowBuilder);
-		
 		StringEntity entity = new StringEntity("Greetings earthling!\n");
-		
-		DateTimeFormatter customDTF = new DateTimeFormatterBuilder()
-	        .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
-	        .appendValue(MONTH_OF_YEAR, 2)
-	        
-	        .appendValue(DAY_OF_MONTH, 2)
-	        .toFormatter();	
-		
-		FilePath path = new FilePath.Builder()
-			.addPathSegment("data")
-			.addPathSegment(customDTF.format(LocalDate.now()))
-			.build();
-		
+		FilePath path = getFilePathDTF();
 		String fileName = path.getFile().getPath() + File.separator + webHdfsConfig.getFileName();
 		
 		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
@@ -151,25 +138,11 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	
 	@Test(dependsOnMethods="validateWorkFlowCreateDirFile")
 	public void validateWorkFlowFileCreateWrite() throws URISyntaxException, IOException {
-		Assert.assertNotNull(webHdfsWorkFlowBuilder);
-		
 		// Override the default file name.
 		//********************************
 		webHdfsConfig.setFileName("testfile1.txt");
-		
 		StringEntity entity = new StringEntity("Greetings earthling!\n");
-		
-		DateTimeFormatter customDTF = new DateTimeFormatterBuilder()
-	        .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
-	        .appendValue(MONTH_OF_YEAR, 2)
-	        .appendValue(DAY_OF_MONTH, 2)
-	        .toFormatter();	
-		
-		FilePath path = new FilePath.Builder()
-			.addPathSegment("data")
-			.addPathSegment(customDTF.format(LocalDate.now()))
-			.build();
-		
+		FilePath path = getFilePathDTF();
 		String fileName = path.getFile().getPath() + File.separator + "testfile1.txt";
 		
 		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
@@ -191,6 +164,39 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	
 	@Test(dependsOnMethods="validateWorkFlowFileCreateWrite")
 	public void validateWebHdfsListStatus() throws URISyntaxException, IOException {
+		FilePath path = getFilePathDTF();
+		
+		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
+			.path(path.getFile().getPath())
+			.addEntry("ListDirectoryStatus", 
+				WebHdfsOps.LISTSTATUS, 
+				HttpStatus.OK, 
+				webHdfsConfig.getBaseDir())
+			.build();
+		
+		CloseableHttpResponse response = workFlow.execute(); 
+		Assert.assertNotNull(response);
+		Assert.assertEquals(HttpStatus.OK.value(), response.getStatusLine().getStatusCode());			
+		
+		ArrayNode fileStatus = getFileStatus(response);
+		
+		//*******************************************
+		// Test the rule.
+		//*******************************************
+		HDFSDirectory hdfsDir = new HDFSDirectory();
+		hdfsDir.setNumChildren(fileStatus.size());
+		hdfsDir.setOwner("root");
+		
+		SimpleMailClient smc = new SimpleMailClient();
+		
+		Object[] facts = { hdfsDir, smc };
+		for (Object fact : facts) {
+			kieSession.insert(fact);
+		}
+		int numRules = kieSession.fireAllRules();
+		Assert.assertEquals(4, numRules);
+	}
+	private FilePath getFilePathDTF() {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
 		
 		// Override the default file name.
@@ -206,16 +212,10 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			.addPathSegment(customDTF.format(LocalDate.now()))
 			.build();
 		
-		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
-			.path(path.getFile().getPath())
-			.addEntry("ListDirectoryStatus", 
-				WebHdfsOps.LISTSTATUS, 
-				HttpStatus.OK, 
-				webHdfsConfig.getBaseDir())
-			.build();
-		CloseableHttpResponse response = workFlow.execute(); 
-		Assert.assertNotNull(response);
-		Assert.assertEquals(HttpStatus.OK.value(), response.getStatusLine().getStatusCode());			
+		return path;
+	}
+	private ArrayNode getFileStatus(CloseableHttpResponse response) 
+			throws JsonParseException, JsonMappingException, ParseException, IOException {
 		ObjectNode dirStatus = new ObjectMapper().readValue(
 			EntityUtils.toString(response.getEntity()), 
 			new TypeReference<ObjectNode>() {
@@ -233,23 +233,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			JsonNode fileStatusNode = fileStatus.get(i);
 			Assert.assertEquals(fileStatusNode.get(TYPE).asText(), FILE);
 			Assert.assertEquals(fileStatusNode.get(PERMISSION).asText(), DEFAULT_PERMISSIONS);
-		}
-		//*******************************************
-		// Test the rule.
-		//*******************************************
-		HDFSDirectory hdfsDir = new HDFSDirectory();
-		hdfsDir.setNumChildren(fileStatus.size());
-		hdfsDir.setOwner("root");
-		
-		SimpleMailClient smc = new SimpleMailClient();
-		
-		Object[] facts = { hdfsDir, smc };
-		log.info ("Running the HDFSDirectory children's rule.");
-		
-		for (Object fact : facts) {
-			kieSession.insert(fact);
-		}
-		int numRules = kieSession.fireAllRules();
-		Assert.assertEquals(4, numRules);
+		}		
+		return fileStatus;
 	}
 }	
