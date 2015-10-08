@@ -9,8 +9,14 @@ public class HDFSDirectory {
 	private String pathSuffix;
 	private String type;
 	private int numChildren;
+	private String statusCheck; 
+	public static final String FILE_CHECK_SUCCESS =  "success";
+	public static final String FILE_CHECK_FAIL =  "fail";
+	public static final String FILE_CHECK_UNKNOWN =  "unknown";
+	public boolean valid;
 	
-	public HDFSDirectory() {
-		
+	public HDFSDirectory() { 
+		statusCheck = FILE_CHECK_UNKNOWN;
+		valid = Boolean.TRUE;
 	}
 }

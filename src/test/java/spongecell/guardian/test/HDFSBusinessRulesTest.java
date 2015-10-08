@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.apache.naming.factory.SendMailFactory;
 import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
@@ -45,6 +46,7 @@ import org.testng.annotations.Test;
 
 import spongecell.guardian.listener.RuleEventListener;
 import spongecell.guardian.model.HDFSDirectory;
+import spongecell.guardian.notification.SimpleMailClient;
 import spongecell.webhdfs.FilePath;
 import spongecell.webhdfs.WebHdfsConfiguration;
 import spongecell.webhdfs.WebHdfsOps;
@@ -67,17 +69,18 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	
 	@BeforeTest
 	public void init() {
-		String[] rules = { "./" + BASE_PATH
-				+ "/spongecell/guardian/rules/core/hdfs-directory.drl" };
-
+		String[] rules = { 
+			"/spongecell/guardian/rules/core/hdfs-directory.drl", 
+			"/spongecell/guardian/rules/core/hdfs-directory-notification.drl"
+		}; 
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
 		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
 		KieRepository kieRepository = kieServices.getRepository();
 
 		for (String rule : rules) {
-			InputStream ruleIn = getClass().getResourceAsStream(
-					"/spongecell/guardian/rules/core/hdfs-directory.drl");
+			InputStream ruleIn = getClass().getResourceAsStream(rule);
+//					"/spongecell/guardian/rules/core/hdfs-directory.drl");
 			Assert.assertNotNull(ruleIn);
 			String path = "src/main/resources/spongecell/"
 					+ "guardian/rules/core/" + rule;
@@ -236,14 +239,17 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		//*******************************************
 		HDFSDirectory hdfsDir = new HDFSDirectory();
 		hdfsDir.setNumChildren(fileStatus.size());
+		hdfsDir.setOwner("root");
 		
-		Object[] facts = { hdfsDir };
+		SimpleMailClient smc = new SimpleMailClient();
+		
+		Object[] facts = { hdfsDir, smc };
 		log.info ("Running the HDFSDirectory children's rule.");
 		
 		for (Object fact : facts) {
 			kieSession.insert(fact);
 		}
 		int numRules = kieSession.fireAllRules();
-		Assert.assertEquals(1, numRules);
+		Assert.assertEquals(4, numRules);
 	}
 }	
