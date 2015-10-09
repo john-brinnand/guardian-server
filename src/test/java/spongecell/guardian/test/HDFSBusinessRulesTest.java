@@ -16,12 +16,14 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.mail.EmailException;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
@@ -41,11 +43,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import spongecell.guardian.listener.RuleEventListener;
 import spongecell.guardian.model.HDFSDirectory;
+import spongecell.guardian.notification.GuardianEvent;
 import spongecell.guardian.notification.SimpleMailClient;
 import spongecell.webhdfs.FilePath;
 import spongecell.webhdfs.WebHdfsConfiguration;
@@ -61,7 +63,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
-@ContextConfiguration(classes = { HDFSBusinessRulesTest.class, WebHdfsWorkFlow.Builder.class})
+@ContextConfiguration(classes = { HDFSBusinessRulesTest.class, WebHdfsWorkFlow.Builder.class, SimpleMailClient.class})
 @EnableConfigurationProperties ({ WebHdfsConfiguration.class })
 public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	private final static String BASE_PATH = "src/main/resources";
@@ -69,39 +71,8 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	private KieSession kieSession;
 	@Autowired WebHdfsWorkFlow.Builder webHdfsWorkFlowBuilder;
 	@Autowired WebHdfsConfiguration webHdfsConfig;
+	@Autowired SimpleMailClient simpleMailClient;
 	
-	@BeforeTest
-	public void init() {
-		String[] rules = { 
-			"/" + RULES_PATH + "/" + "hdfs-directory.drl",
-			"/" + RULES_PATH + "/" + "hdfs-directory-notification.drl",
-		}; 
-		KieServices kieServices = KieServices.Factory.get();
-		KieResources kieResources = kieServices.getResources();
-		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
-		KieRepository kieRepository = kieServices.getRepository();
-
-		for (String rule : rules) {
-			InputStream ruleIn = getClass().getResourceAsStream(rule);
-			Assert.assertNotNull(ruleIn);
-			String path = BASE_PATH + "/"  + RULES_PATH + "/" + rule;
-			kieFileSystem.write(path,
-					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
-		}
-		KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
-		kb.buildAll();
-
-		if (kb.getResults().hasMessages(Level.ERROR)) {
-			throw new RuntimeException("Build Errors:\n"
-					+ kb.getResults().toString());
-		}
-		KieContainer kieContainer = kieServices.newKieContainer(
-			kieRepository.getDefaultReleaseId());
-
-		kieSession = kieContainer.newKieSession();
-		kieSession.addEventListener(new RuleEventListener());
-		kieSession.addEventListener(new DebugRuleRuntimeEventListener());
-	}
 	@Test
 	public void validateWorkFlowCreateDirFile() throws NoSuchMethodException, 
 		SecurityException, UnsupportedEncodingException, URISyntaxException {
@@ -163,7 +134,15 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test(dependsOnMethods="validateWorkFlowFileCreateWrite")
-	public void validateWebHdfsListStatus() throws URISyntaxException, IOException {
+	public void validateWebHdfsListStatus() throws URISyntaxException,
+		IOException, EmailException {
+		String[] rules = { 
+			"/" + RULES_PATH + "/" + "hdfs-directory.drl",
+			"/" + RULES_PATH + "/" + "hdfs-directory-notification.drl",
+			"/" + RULES_PATH + "/" + "hdfs-heston.drl",
+		}; 
+		initKie(rules);
+		
 		FilePath path = getFilePathDTF();
 		
 		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
@@ -186,16 +165,61 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		HDFSDirectory hdfsDir = new HDFSDirectory();
 		hdfsDir.setNumChildren(fileStatus.size());
 		hdfsDir.setOwner("root");
+		hdfsDir.setFileStatus(fileStatus);
 		
-		SimpleMailClient smc = new SimpleMailClient();
+		Object[] facts = { hdfsDir, simpleMailClient };
+		for (Object fact : facts) {
+			kieSession.insert(fact);
+		}
+		int numRules = kieSession.fireAllRules();
+		Assert.assertEquals(5, numRules);
+	}
+	
+	@Test(dependsOnMethods="validateWorkFlowFileCreateWrite")
+	public void validateWebHdfsListStatusEvent() throws URISyntaxException,
+		IOException, EmailException {
+		String[] rules = { 
+			"/" + RULES_PATH + "/" + "hdfs-directory-notification.drl",
+			"/" + RULES_PATH + "/" + "hdfs-heston.drl",
+		}; 	
+		initKie(rules);
 		
-		Object[] facts = { hdfsDir, smc };
+		FilePath path = getFilePathDTF();
+		
+		WebHdfsWorkFlow workFlow = webHdfsWorkFlowBuilder
+			.path(path.getFile().getPath())
+			.addEntry("ListDirectoryStatus", 
+				WebHdfsOps.LISTSTATUS, 
+				HttpStatus.OK, 
+				webHdfsConfig.getBaseDir())
+			.build();
+		
+		CloseableHttpResponse response = workFlow.execute(); 
+		Assert.assertNotNull(response);
+		Assert.assertEquals(HttpStatus.OK.value(), response.getStatusLine().getStatusCode());			
+		
+		ArrayNode fileStatus = getFileStatus(response);
+		
+		//*******************************************
+		// Test the rule.
+		//*******************************************
+		HDFSDirectory hdfsDir = new HDFSDirectory();
+		hdfsDir.setNumChildren(fileStatus.size());
+		hdfsDir.setOwner("root");
+		hdfsDir.setFileStatus(fileStatus);
+		
+		GuardianEvent event = new GuardianEvent();
+		event.dateTime = LocalDateTime.now( ).toString();
+		event.absolutePath = webHdfsConfig.getBaseDir();
+		event.setEventSeverity(GuardianEvent.severity.INFO.name());
+		
+		Object[] facts = { hdfsDir, simpleMailClient, event };
 		for (Object fact : facts) {
 			kieSession.insert(fact);
 		}
 		int numRules = kieSession.fireAllRules();
 		Assert.assertEquals(4, numRules);
-	}
+	}	
 	
 	private FilePath getFilePathDTF() {
 		Assert.assertNotNull(webHdfsWorkFlowBuilder);
@@ -215,6 +239,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		
 		return path;
 	}
+	
 	private ArrayNode getFileStatus(CloseableHttpResponse response) 
 			throws JsonParseException, JsonMappingException, ParseException, IOException {
 		ObjectNode dirStatus = new ObjectMapper().readValue(
@@ -236,5 +261,33 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 			Assert.assertEquals(fileStatusNode.get(PERMISSION).asText(), DEFAULT_PERMISSIONS);
 		}		
 		return fileStatus;
+	}
+	
+	private void initKie(String [] rules) {
+		KieServices kieServices = KieServices.Factory.get();
+		KieResources kieResources = kieServices.getResources();
+		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+		KieRepository kieRepository = kieServices.getRepository();
+
+		for (String rule : rules) {
+			InputStream ruleIn = getClass().getResourceAsStream(rule);
+			Assert.assertNotNull(ruleIn);
+			String path = BASE_PATH + "/"  + RULES_PATH + "/" + rule;
+			kieFileSystem.write(path,
+					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
+		}
+		KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+		kb.buildAll();
+
+		if (kb.getResults().hasMessages(Level.ERROR)) {
+			throw new RuntimeException("Build Errors:\n"
+					+ kb.getResults().toString());
+		}
+		KieContainer kieContainer = kieServices.newKieContainer(
+			kieRepository.getDefaultReleaseId());
+
+		kieSession = kieContainer.newKieSession();
+		kieSession.addEventListener(new RuleEventListener());
+		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
 	}
 }	
