@@ -2,13 +2,14 @@ package spongecell.guardian.rules.core
  
 import spongecell.guardian.model.HDFSDirectory 
 import spongecell.guardian.notification.SimpleMailClient 
+import spongecell.guardian.notification.GuardianEvent 
  
 /*
  * This rule checks that the number of files in a directory.
  */
 dialect "mvel"
 
-rule "1 HDFSDirectory Status Check"
+rule "1 HDFS Heston Status Check"
     when
         $hdfsDir1 : HDFSDirectory(statusCheck == HDFSDirectory.FILE_CHECK_UNKNOWN) 
     then
@@ -21,7 +22,7 @@ end
  */ 
 dialect "java"
 
-rule "2 HDFSDirectory Children Check"
+rule "2 HDFS Heston Children Check"
     when
     	// This condition must come first or the 
     	// rule will go into an infinite loop.
@@ -38,7 +39,8 @@ rule "2 HDFSDirectory Children Check"
         //***********************************************
         modify( $mailClient ) { 
         	setSendMail( Boolean.TRUE ),  
-        	setValid( Boolean.FALSE)
+        	setValid( Boolean.FALSE),
+        	setMessage ($hdfsDir.getFileStatus())
         };
         System.out.println("Health check passed. SimpleMailClient.sendMail is: " + 
         	$mailClient.sendMail);
@@ -51,10 +53,16 @@ end
  */
 dialect "mvel"
 
-rule "3 HDFSDirectory Notification Check"
+rule "3 HDFS Heston Notification Check"
     when
+        $event : GuardianEvent(valid == true)
         $sendMailClient : SimpleMailClient(sendMail == Boolean.TRUE)
     then
+        modify( $event ) { 
+        	setEventSeverity("INFO"),	
+        	setMessage("Greetings earthling"),
+        	setValid(Boolean.FALSE)
+        }
         System.out.println("Yahoo: " + $sendMailClient.sendMail);
-        $sendMailClient.send();
+        $sendMailClient.send($event.message);
 end
