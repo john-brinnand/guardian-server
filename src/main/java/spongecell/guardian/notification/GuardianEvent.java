@@ -9,6 +9,8 @@ import lombok.Setter;
 public class GuardianEvent {
 	public String source;
 	public String dateTime ;
+	public String managedObject;
+	
 	public static enum severity {
 		INFORMATIONAL,
 		MINOR,
@@ -26,7 +28,9 @@ public class GuardianEvent {
 	}
 	
 	public String getMessage() {
-		message = String.format("%s : %s,\n%s : %s\n%s\n%s\n%s", "Source", source, 
+		message = String.format("%s : %s,\n%s : %s\n%s : %s\n%s\n%s\n%s", 
+			"ManagedObject", managedObject, 
+			"Source", source, 
 			"Severity", eventSeverity, 
 			"*****************************************************************", 
 			 body, 

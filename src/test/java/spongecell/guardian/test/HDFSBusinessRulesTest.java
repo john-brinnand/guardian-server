@@ -207,6 +207,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		hdfsDir.setNumChildren(fileStatus.size());
 		hdfsDir.setOwner("root");
 		hdfsDir.setFileStatus(fileStatus);
+		hdfsDir.setTargetDir(path.getFile().getPath());
 		
 		GuardianEvent event = new GuardianEvent();
 		event.dateTime = LocalDateTime.now( ).toString();

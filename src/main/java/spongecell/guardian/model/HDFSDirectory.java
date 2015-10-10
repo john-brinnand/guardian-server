@@ -28,6 +28,9 @@ public class HDFSDirectory {
 	private int storagePolicy;
 	private String type;
 	private ArrayNode fileStatus;
+	private String targetDir;
+	private String HDFS = "HDFS";
+	private String COLON = ":";
 
 	public static final String FILE_CHECK_SUCCESS =  "success";
 	public static final String FILE_CHECK_FAIL =  "fail";
@@ -48,5 +51,9 @@ public class HDFSDirectory {
 		}
 		log.info("*********************** \n" + sbuf.toString());
 		return sbuf.toString();
+	} 
+	
+	public void setTargetDir(String targetDir) {
+		this.targetDir = HDFS + COLON + targetDir;
 	}
 }

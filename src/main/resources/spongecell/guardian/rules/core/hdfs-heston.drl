@@ -53,14 +53,15 @@ end
  */
 dialect "mvel"
 
-rule "3 HDFS Heston Notification Check"
+rule "JRRule:3:Heston Valid Data Notifier"
     when
         $event : GuardianEvent(valid == true)
         $hdfsDir1 : HDFSDirectory(numChildren == 2) 
         $sendMailClient : SimpleMailClient(sendMail == Boolean.TRUE)
     then
         modify( $event ) { 
-        	setSource("Guardian"),	
+        	setSource(drools.getRule().getName()),	
+        	setManagedObject($hdfsDir1.getTargetDir()),
         	setEventSeverity("INFORMATIONAL"),	
         	setBody($hdfsDir1.getFileStatus()),
         	setValid(Boolean.FALSE)
