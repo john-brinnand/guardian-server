@@ -50,7 +50,7 @@ public class SimpleMailClient {
 		email.setSSLOnConnect(smConfig.isSslOnConnect());
 		email.setFrom(smConfig.getFrom());
 		email.setSubject(smConfig.getSubject());
-		email.setMsg(this.message);
+		email.setMsg(msg);
 		for  (String consumer : Arrays.asList(smConfig.getConsumers())) {
 			email.addTo(consumer);
 		}

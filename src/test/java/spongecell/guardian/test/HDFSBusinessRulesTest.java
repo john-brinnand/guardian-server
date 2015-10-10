@@ -211,7 +211,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		GuardianEvent event = new GuardianEvent();
 		event.dateTime = LocalDateTime.now( ).toString();
 		event.absolutePath = webHdfsConfig.getBaseDir();
-		event.setEventSeverity(GuardianEvent.severity.INFO.name());
+		event.setEventSeverity(GuardianEvent.severity.INFORMATIONAL.name());
 		
 		Object[] facts = { hdfsDir, simpleMailClient, event };
 		for (Object fact : facts) {
@@ -289,5 +289,12 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		kieSession = kieContainer.newKieSession();
 		kieSession.addEventListener(new RuleEventListener());
 		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
+	}
+	@Test
+	public void testStringFormat() {
+		int i = 0;
+		String greeting = "hello";
+		String buf = String.format("%s:%d, \n %s:%s \n", "index", i, "greeting", greeting);
+		log.info(buf);
 	}
 }	

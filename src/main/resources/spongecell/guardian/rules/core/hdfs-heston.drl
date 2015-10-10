@@ -56,13 +56,15 @@ dialect "mvel"
 rule "3 HDFS Heston Notification Check"
     when
         $event : GuardianEvent(valid == true)
+        $hdfsDir1 : HDFSDirectory(numChildren == 2) 
         $sendMailClient : SimpleMailClient(sendMail == Boolean.TRUE)
     then
         modify( $event ) { 
-        	setEventSeverity("INFO"),	
-        	setMessage("Greetings earthling"),
+        	setSource("Guardian"),	
+        	setEventSeverity("INFORMATIONAL"),	
+        	setBody($hdfsDir1.getFileStatus()),
         	setValid(Boolean.FALSE)
         }
         System.out.println("Yahoo: " + $sendMailClient.sendMail);
-        $sendMailClient.send($event.message);
+        $sendMailClient.send($event.getMessage());
 end
