@@ -68,7 +68,5 @@ rule "JRRule:3:Heston Valid Data Notifier"
         	setValid(Boolean.FALSE)
         }
         System.out.println("Yahoo: " + $sendMailClient.sendMail);
-//        $sendMailClient.send($event.getMessage());
-//        $sendMailClient.multipartSend($event.getMessage());
         $sendMailClient.sendExcelAttachment($event.getMessage(), $hdfsDir1.getExcelFileStatusWorkBook());
 end
