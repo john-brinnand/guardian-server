@@ -19,7 +19,7 @@ public class GuardianEvent {
 	};
 	public String absolutePath;
 	public String message = new String();
-	public String body = new String();
+	public Object body = new String();
 	public String eventSeverity;
 	private boolean valid = true;
 	

@@ -59,6 +59,7 @@ rule "JRRule:3:Heston Valid Data Notifier"
         $hdfsDir1 : HDFSDirectory(numChildren == 2) 
         $sendMailClient : SimpleMailClient(sendMail == Boolean.TRUE)
     then
+        $hdfsDir1.getExcelFileStatusWorkBook();
         modify( $event ) { 
         	setSource(drools.getRule().getName()),	
         	setManagedObject($hdfsDir1.getTargetDir()),
@@ -67,5 +68,7 @@ rule "JRRule:3:Heston Valid Data Notifier"
         	setValid(Boolean.FALSE)
         }
         System.out.println("Yahoo: " + $sendMailClient.sendMail);
-        $sendMailClient.send($event.getMessage());
+//        $sendMailClient.send($event.getMessage());
+//        $sendMailClient.multipartSend($event.getMessage());
+        $sendMailClient.sendExcelAttachment($event.getMessage(), $hdfsDir1.getExcelFileStatusWorkBook());
 end

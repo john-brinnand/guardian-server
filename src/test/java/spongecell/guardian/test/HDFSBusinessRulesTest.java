@@ -11,6 +11,8 @@ import static spongecell.webhdfs.WebHdfsParams.PERMISSION;
 import static spongecell.webhdfs.WebHdfsParams.TYPE;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -28,6 +30,12 @@ import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
@@ -291,11 +299,30 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		kieSession.addEventListener(new RuleEventListener());
 		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
 	}
+	
 	@Test
-	public void testStringFormat() {
-		int i = 0;
-		String greeting = "hello";
-		String buf = String.format("%s:%d, \n %s:%s \n", "index", i, "greeting", greeting);
-		log.info(buf);
+	public void validateGenerateExcelWorkBook() throws IOException {
+		Workbook workBook = new HSSFWorkbook();
+	    //Workbook wb = new XSSFWorkbook();
+	    CreationHelper createHelper = workBook.getCreationHelper();
+	    Sheet sheet = workBook.createSheet("new sheet");
+
+	    // Create a row and put some cells in it. Rows are 0 based.
+	    Row row = sheet.createRow((short)0);
+	    // Create a cell and put a value in it.
+	    Cell cell = row.createCell(0);
+	    cell.setCellValue(1);
+
+	    // Or do it on one line.
+	    row.createCell(1).setCellValue(1.2);
+	    row.createCell(2).setCellValue(
+	         createHelper.createRichTextString("This is a string"));
+	    row.createCell(3).setCellValue(true);
+
+	    // Write the output to a file
+	    FileOutputStream fileOut = new FileOutputStream("workbook.xls");
+	    workBook.write(fileOut);
+	    fileOut.close();	
+	    workBook.close();
 	}
 }	

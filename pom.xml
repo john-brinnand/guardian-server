@@ -25,6 +25,7 @@
 		<org.easymock.version>3.3.1</org.easymock.version>
 		<spongecell.webhdfs.version>0.0.1-SNAPSHOT</spongecell.webhdfs.version>
 		<org.apache.commons-email>1.4</org.apache.commons-email>
+		<org.apache.poi.version>3.13</org.apache.poi.version>
 	</properties>
 
 	<dependencyManagement>
@@ -130,7 +131,7 @@
 			<groupId>org.kie</groupId>
 			<artifactId>kie-api</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.drools</groupId>
 			<artifactId>drools-compiler</artifactId>
@@ -142,6 +143,13 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-email</artifactId>
 			<version>${org.apache.commons-email}</version>
+		</dependency>
+
+		<!-- Apache POI writes and reads excel spreadsheets -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>${org.apache.poi.version}</version>
 		</dependency>
 	</dependencies>
 

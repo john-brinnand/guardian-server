@@ -1,6 +1,16 @@
 package spongecell.guardian.model;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -52,8 +62,33 @@ public class HDFSDirectory {
 		log.info("*********************** \n" + sbuf.toString());
 		return sbuf.toString();
 	} 
-	
+
 	public void setTargetDir(String targetDir) {
 		this.targetDir = HDFS + COLON + targetDir;
-	}
+	}	
+	
+	public Workbook getExcelFileStatusWorkBook() throws IOException {
+		Workbook workBook = new HSSFWorkbook();
+		
+		CreationHelper createHelper = workBook.getCreationHelper();
+	    Sheet sheet = workBook.createSheet("HDFS File System Report");
+		
+	    short i = 0;
+		Iterator<JsonNode> nodes = fileStatus.iterator();
+		while (nodes.hasNext()) {
+			Row row = sheet.createRow(i);
+			JsonNode node = nodes.next();
+			Iterator<JsonNode> values = node.elements(); 
+			int j = 0;
+			while (values.hasNext()) {
+				JsonNode value = values.next();
+				row.createCell(j).setCellValue(createHelper.createRichTextString(value.toString()));
+				j++;
+			}
+			i++;
+		}
+		log.info("*********************** \n" + workBook.toString());
+	
+		return workBook;
+	} 
 }
