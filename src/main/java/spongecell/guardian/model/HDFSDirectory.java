@@ -133,8 +133,6 @@ public class HDFSDirectory {
 			}
 			i++;
 		}
-		log.info("*********************** \n" + workBook.toString());
-	
 		return workBook;
 	} 
 	
