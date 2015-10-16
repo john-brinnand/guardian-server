@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter @Setter 
-@ConfigurationProperties(prefix ="simplemailclient")
+@ConfigurationProperties(prefix ="guardian")
 public class SlackGuardianWebHookConfiguration {
 	/**
 	 * https://hooks.slack.com/services/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

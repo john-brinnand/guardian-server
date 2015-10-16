@@ -11,7 +11,6 @@ import static spongecell.webhdfs.WebHdfsParams.PERMISSION;
 import static spongecell.webhdfs.WebHdfsParams.TYPE;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +56,7 @@ import spongecell.guardian.listener.RuleEventListener;
 import spongecell.guardian.model.HDFSDirectory;
 import spongecell.guardian.notification.GuardianEvent;
 import spongecell.guardian.notification.SimpleMailClient;
+import spongecell.guardian.notification.SlackGuardianWebHook;
 import spongecell.webhdfs.FilePath;
 import spongecell.webhdfs.WebHdfsConfiguration;
 import spongecell.webhdfs.WebHdfsOps;
@@ -222,12 +222,14 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		event.absolutePath = webHdfsConfig.getBaseDir();
 		event.setEventSeverity(GuardianEvent.severity.INFORMATIONAL.name());
 		
-		Object[] facts = { hdfsDir, simpleMailClient, event };
+		SlackGuardianWebHook slackClient = new SlackGuardianWebHook();
+		
+		Object[] facts = { hdfsDir, simpleMailClient, event, slackClient };
 		for (Object fact : facts) {
 			kieSession.insert(fact);
 		}
 		int numRules = kieSession.fireAllRules();
-		Assert.assertEquals(4, numRules);
+		Assert.assertEquals(6, numRules);
 	}	
 	
 	private FilePath getFilePathDTF() {

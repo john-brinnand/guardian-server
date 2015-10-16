@@ -14,12 +14,14 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import spongecell.guardian.model.HDFSDirectory;
 import spongecell.guardian.notification.SlackGuardianWebHook;
-import spongecell.guardian.notification.SlackGuardianWebHookConfiguration;
 
 /**
  * @author jbrinnand
@@ -28,20 +30,19 @@ import spongecell.guardian.notification.SlackGuardianWebHookConfiguration;
 @ContextConfiguration(classes = { SlackGuardianWebHookTest.class})
 @EnableConfigurationProperties ({ SlackGuardianWebHook.class })
 public class SlackGuardianWebHookTest extends AbstractTestNGSpringContextTests{
-	private StringEntity greetingEntity = null; 
 	private @Autowired SlackGuardianWebHook slackGuardianWebHook;
+	private final static String MESSAGE = "This is posted to #guardian and comes from a bot named guardian.";
+	private final static String EMOJI_GHOST = ":ghost:";
 
 	@PostConstruct
 	public void postConstruct() throws URISyntaxException, UnsupportedEncodingException {
-		greetingEntity = new StringEntity("payload={ " +
-		  "'text': 'This is posted to #guardian and comes from a bot named guardian.'" + 
-		  "'icon_emoji': ':ghost:' }", ContentType.create("text/plain", "UTF-8"));
 	}
 
 	@Test
-	public void slackGuardianWebHookGreeting() throws ClientProtocolException, IOException {
-		CloseableHttpResponse response = slackGuardianWebHook.create(greetingEntity);
+	public void slackGuardianWebHookSend() throws ClientProtocolException, IOException {
+		CloseableHttpResponse response = slackGuardianWebHook.send(MESSAGE, EMOJI_GHOST);
 		log.info("Response status code {} ", response.getStatusLine().getStatusCode());
+		Assert.assertEquals(HttpStatus.OK.value(), response.getStatusLine().getStatusCode());
 		response.close();
-	}
+	}	
 }	

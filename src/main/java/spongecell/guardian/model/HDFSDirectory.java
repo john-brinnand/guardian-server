@@ -75,6 +75,11 @@ public class HDFSDirectory {
 	public void setTargetDir(String targetDir) {
 		this.targetDir = HDFS + COLON + targetDir;
 	}	
+	
+	public ArrayNode getRawFileStatus() {
+		return fileStatus;
+	}
+	
 	//*********************************************
 	//TODO Modularize and use schema definitions.
 	// Should be in a WorkBook Builder class.

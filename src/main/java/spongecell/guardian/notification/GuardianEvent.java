@@ -1,6 +1,14 @@
 package spongecell.guardian.notification;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +44,26 @@ public class GuardianEvent {
 			 body, 
 			"*****************************************************************"); 
 		return message;
+	}
+	
+	public String getJsonEventMessage() throws JsonProcessingException {
+		ObjectNode event = new ObjectMapper().createObjectNode();
+		event.put ("source", source);
+		event.put ("timestamp", dateTime);
+		event.put("severity", eventSeverity);
+		
+		int i = 1;
+		if (body instanceof ArrayNode) {
+			Iterator<JsonNode> nodes = ((ArrayNode)body).iterator();
+			while (nodes.hasNext()) {
+				JsonNode node = nodes.next();
+				event.put("Row " + i,  new ObjectMapper()
+					.writerWithDefaultPrettyPrinter()
+					.writeValueAsString(node).replace("\n", "").replace("\"", ""));
+				i++;
+			}
+		}
+		return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(event);
 	}
 }
 
