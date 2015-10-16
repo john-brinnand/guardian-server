@@ -60,7 +60,6 @@ rule "3 MailClient Notifier"
         $event : GuardianEvent(valid == true)
         $hdfsDir1 : HDFSDirectory(numChildren == 2) 
         $sendMailClient : SimpleMailClient(sendMail == Boolean.TRUE)
-//        $slackClient : SlackGuardianWebHook(sendMsg == true)
     then
         $hdfsDir1.getExcelFileStatusWorkBook();
         modify( $event ) { 
@@ -72,7 +71,6 @@ rule "3 MailClient Notifier"
         }
         System.out.println("Sending notifications:");
         $sendMailClient.sendExcelAttachment($event.getMessage(), $hdfsDir1.getExcelFileStatusWorkBook());
-//	    $slackClient.send($event.getJsonEventMessage(), SlackGuardianWebHook.EMOJI_GHOST);
 end
 
 

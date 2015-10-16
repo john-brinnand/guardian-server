@@ -3,21 +3,21 @@ package spongecell.guardian.notification;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
-import lombok.Getter;
-import lombok.Setter;
 
 @Getter @Setter
 public class GuardianEvent {
 	public String source;
 	public String dateTime ;
 	public String managedObject;
+	public String expected;
 	
 	public static enum severity {
 		INFORMATIONAL,
@@ -47,14 +47,16 @@ public class GuardianEvent {
 	}
 	// TODO: there should data formatters for JSON, Excel, CSV, 
 	// or whatever is needed by the client. They should either
-	// be injected into the GuardianEvent or a dispatcher should
-	// delegate data formatting to these methods / objects.
-	//***********************************************************
+	// be injected into the GuardianEvent by a builder or a dispatcher 
+	// should delegate the job of data formatting to these methods / objects.
+	//***********************************************************************
 	public String getJsonEventMessage() throws JsonProcessingException {
 		ObjectNode event = new ObjectMapper().createObjectNode();
 		event.put ("source", source);
 		event.put ("timestamp", dateTime);
 		event.put("severity", eventSeverity);
+		event.put("target", managedObject);
+		event.put("Number of files found", ((ArrayNode)body).size());
 		
 		int i = 1;
 		if (body instanceof ArrayNode) {
