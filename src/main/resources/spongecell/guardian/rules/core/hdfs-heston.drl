@@ -103,7 +103,7 @@ end
  */
 dialect "mvel"
 
-rule "5: Slack Data Notifier"
+rule "Slack Notifier"
     when
         $slackClient : SlackGuardianWebHook(sendMsg == true && messageSent == false)
         $slackEvent : GuardianEvent()

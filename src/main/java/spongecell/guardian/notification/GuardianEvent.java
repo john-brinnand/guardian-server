@@ -45,7 +45,11 @@ public class GuardianEvent {
 			"*****************************************************************"); 
 		return message;
 	}
-	
+	// TODO: there should data formatters for JSON, Excel, CSV, 
+	// or whatever is needed by the client. They should either
+	// be injected into the GuardianEvent or a dispatcher should
+	// delegate data formatting to these methods / objects.
+	//***********************************************************
 	public String getJsonEventMessage() throws JsonProcessingException {
 		ObjectNode event = new ObjectMapper().createObjectNode();
 		event.put ("source", source);
@@ -66,4 +70,3 @@ public class GuardianEvent {
 		return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(event);
 	}
 }
-
