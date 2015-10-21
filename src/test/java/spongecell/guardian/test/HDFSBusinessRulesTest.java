@@ -273,7 +273,15 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		}		
 		return fileStatus;
 	}
-	
+	/**
+	 * Configurable variables are: 
+	 * 		path - the path to the rules.
+	 * 		released version - the version of the rules. 
+	 * 		release Id - the ID of the release. 
+	 * 		session name - the name of the session.
+	 * 
+	 * @param rules
+	 */
 	private void initKie(String [] rules) {
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
@@ -297,7 +305,7 @@ public class HDFSBusinessRulesTest extends AbstractTestNGSpringContextTests {
 		KieContainer kieContainer = kieServices.newKieContainer(
 			kieRepository.getDefaultReleaseId());
 
-		kieSession = kieContainer.newKieSession();
+		kieSession = kieContainer.newKieSession("hdfsDirCheckRule");
 		kieSession.addEventListener(new RuleEventListener());
 		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
 	}
