@@ -10,8 +10,11 @@ import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.KieScanner;
 import org.kie.api.builder.Message.Level;
+import org.kie.api.builder.ReleaseId;
 import org.kie.api.builder.model.KieBaseModel;
 import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.builder.model.KieSessionModel;
@@ -99,6 +102,7 @@ public class KieSessionHandler {
 	public KieSession buildKIESessionKModuleMemoryFileSystem() {
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
+		ReleaseId releaseId = kieServices.newReleaseId("spongecell", "core", "0.0.1-SNAPSHOT");
 		
 		//************************************************************
 		// Generate kmodule.xml in the memory file system. 
@@ -125,24 +129,43 @@ public class KieSessionHandler {
 					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
 		}	
 	    kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
+	    kieFileSystem.generateAndWritePomXML(releaseId);
 	    log.info(kieModuleModel.toXML());
-	    
+
 	    // Build the rules for this module. Note that the 
 	    // module is contained within the file system.
 	    //*****************************************************
 	    KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
 		kb.buildAll();
-
+		
 		if (kb.getResults().hasMessages(Level.ERROR)) {
 			throw new RuntimeException("Build Errors:\n"
 					+ kb.getResults().toString());
 		}	   
-		KieContainer kieContainer = kieServices.newKieContainer(
-			kieServices.getRepository().getDefaultReleaseId());
+		KieContainer kieContainer = kieServices.newKieContainer(releaseId); 
 	    
 		// Create the session. 
 	    KieSession kieSession = kieContainer.newKieSession("KSession1");
 	
 		return kieSession;
 	}	
+	
+	public void scanKieRepository () {
+		KieServices kieServices = KieServices.Factory.get();
+		ReleaseId releaseId = kieServices.newReleaseId("spongecell", "core", "0.0.1-SNAPSHOT");
+		KieContainer kContainer = kieServices.newKieContainer( releaseId );
+		KieScanner kScanner = kieServices.newKieScanner( kContainer );
+		// Start the KieScanner polling the Maven repository every 10 seconds
+		kScanner.scanNow();
+		log.debug("Here");
+	}
+	
+	public KieSession getRepositorySession(String groupId, String artifactId,
+			String version, String sessionName) {
+		KieServices kieServices = KieServices.Factory.get();
+		ReleaseId releaseId = kieServices.newReleaseId(groupId, artifactId, version);
+		KieContainer kieContainer = kieServices.newKieContainer( releaseId );
+	    KieSession kieSession = kieContainer.newKieSession(sessionName);
+		return kieSession;
+	}
 }

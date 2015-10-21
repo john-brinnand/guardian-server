@@ -89,6 +89,37 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 		kieSession1.insert(person);
 		kieSession1.fireAllRules();
 		Assert.assertEquals(1, list.size());
+	}	
+	
+	@Test
+	public void validateRepositorySessionAccess() {
+		// This creates a module with the id: 
+		// spongecell:core:0.0.1-SNAPSHOT to the repository
+		//*************************************************
+		KieSession kieSession = kieSessionHandler.buildKIESessionKModuleMemoryFileSystem();
+		validateSession(kieSession);
 		
+		// Now get the module from the repository and validate
+		// that the rules fire correctly.
+		//******************************************************
+		KieSession kieSession1 = kieSessionHandler.getRepositorySession(
+				"spongecell", "core", "0.0.1-SNAPSHOT", "KSession1");
+		validateSession(kieSession1);
+	}
+	
+	private void validateSession(KieSession kieSession) {
+		Person person = new Person("Joe Test", 22);
+		List<Person> list = new ArrayList<Person>();
+		list.clear();
+		kieSession.setGlobal("list", list);
+		kieSession.insert(person);
+		kieSession.fireAllRules();
+		Assert.assertEquals(1, list.size());		
+	}
+	
+	@Test
+	public void validateKieScanner () {
+		kieSessionHandler.scanKieRepository();
+		log.info("Pause");
 	}	
 }	
