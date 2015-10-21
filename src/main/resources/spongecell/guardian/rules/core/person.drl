@@ -4,6 +4,7 @@ import spongecell.guardian.model.Person
  
 dialect "mvel"
  
+global java.util.List list;
 /*
  * This rule checks that a person is >= 21
  */
@@ -12,4 +13,5 @@ rule "Person is 21"
         $person : Person(age>=21)               
     then
         System.out.println($person.name + " is over the age of 21.");
+        list.add($person);
 end

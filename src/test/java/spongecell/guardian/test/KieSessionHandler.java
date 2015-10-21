@@ -55,7 +55,7 @@ public class KieSessionHandler {
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
 		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
-		KieRepository kieRepository = kieServices.getRepository();
+		kieRepository = kieServices.getRepository();
 
 		for (String rule : rules) {
 			InputStream ruleIn = getClass().getResourceAsStream("/" + rulesPath + "/" + rule);
@@ -81,7 +81,7 @@ public class KieSessionHandler {
 		
 	}
 	
-	public KieSession buildKIEFromKModuleFile() {
+	public KieSession buildKIESessionKModuleFile() {
 		KieServices kieServices = KieServices.Factory.get();
 		
 		//************************************************************
@@ -96,7 +96,7 @@ public class KieSessionHandler {
 		return kSession;
 	}
 	
-	public KieSession buildKIESessionInternal() {
+	public KieSession buildKIESessionKModuleMemoryFileSystem() {
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
 		
