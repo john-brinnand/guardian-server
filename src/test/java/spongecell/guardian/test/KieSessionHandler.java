@@ -150,9 +150,10 @@ public class KieSessionHandler {
 		return kieSession;
 	}	
 	
-	public void scanKieRepository () {
+	public void scanKieRepository (String groupId, String artifactId,
+			String version, String sessionName) {
 		KieServices kieServices = KieServices.Factory.get();
-		ReleaseId releaseId = kieServices.newReleaseId("spongecell", "core", "0.0.1-SNAPSHOT");
+		ReleaseId releaseId = kieServices.newReleaseId(groupId, artifactId, version);
 		KieContainer kContainer = kieServices.newKieContainer( releaseId );
 		KieScanner kScanner = kieServices.newKieScanner( kContainer );
 		// Start the KieScanner polling the Maven repository every 10 seconds

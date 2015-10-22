@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.KieScannerFactoryService;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -79,16 +80,10 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 	
 	@Test
 	public void validatecKModuleMemoryFileSystem () {
-		Person person = new Person("Joe Test", 22);
-		List<Person> list = new ArrayList<Person>();
-		
-		KieSession kieSession1 = kieSessionHandler.buildKIESessionKModuleMemoryFileSystem();
-		Assert.assertNotNull(kieSession1);
-		list.clear();
-		kieSession1.setGlobal("list", list);
-		kieSession1.insert(person);
-		kieSession1.fireAllRules();
-		Assert.assertEquals(1, list.size());
+		KieSession kieSession = kieSessionHandler
+				.buildKIESessionKModuleMemoryFileSystem();
+		Assert.assertNotNull(kieSession);
+		validateSession(kieSession);
 	}	
 	
 	@Test
@@ -119,7 +114,13 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 	
 	@Test
 	public void validateKieScanner () {
-		kieSessionHandler.scanKieRepository();
+		// This creates a module with the id: 
+		// spongecell:core:0.0.1-SNAPSHOT to the repository
+		//*************************************************
+		KieSession kieSession = kieSessionHandler.buildKIESessionKModuleMemoryFileSystem();
+		validateSession(kieSession);
+		kieSessionHandler.scanKieRepository("spongecell", "core",
+				"0.0.1-SNAPSHOT", "KSession1");
 		log.info("Pause");
 	}	
 }	
