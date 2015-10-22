@@ -123,4 +123,41 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 				"0.0.1-SNAPSHOT", "KSession1");
 		log.info("Pause");
 	}	
+
+	@Test
+	public void validateReleaseId () {
+		// This creates a module with the id: 
+		// spongecell:core:0.0.1-SNAPSHOT to the repository
+		//*************************************************
+		KieSession kieSession = kieSessionHandler.buildKieSessionReleaseId(
+				"spongecell", "testCore", "0.0.1-SNAPSHOT");
+		validateSession(kieSession);
+		
+		// Now get the module from the repository and validate
+		// that the rules fire correctly.
+		//******************************************************
+		KieSession kieSession2 = kieSessionHandler.getRepositorySession(
+				"spongecell", "testRelease", "0.0.1-SNAPSHOT", "");
+		validateSession(kieSession2);
+	}	
+
+	@Test
+	public void validateKieModuleMemoryFileSystem () {
+		// This creates a module with the id: 
+		// spongecell:core:0.0.1-SNAPSHOT to the repository
+		//*************************************************
+		KieSession kieSession1 = kieSessionHandler.buildKIESessionKModuleMemoryFileSystem(
+			"spongecell", "core-alpha", "0.0.1-SNAPSHOT", 
+			"heston-module-alpha", "heston-session-alpha");
+		validateSession(kieSession1);
+		
+		// Now get the module from the repository and validate
+		// that the rules fire correctly.
+		//******************************************************
+		KieSession kieSession2 = kieSessionHandler.getRepositorySession(
+			"spongecell", "core-alpha", 
+			"0.0.1-SNAPSHOT", "heston-session-alpha");
+		validateSession(kieSession2);
+		log.info("Test");
+	}	
 }	

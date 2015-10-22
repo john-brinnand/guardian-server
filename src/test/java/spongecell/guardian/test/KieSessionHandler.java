@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.builder.Message.Level;
@@ -81,7 +80,6 @@ public class KieSessionHandler {
 		kieSession.addEventListener(new RuleEventListener());
 		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
 		return kieSession;
-		
 	}
 	
 	public KieSession buildKIESessionKModuleFile() {
@@ -102,10 +100,15 @@ public class KieSessionHandler {
 	public KieSession buildKIESessionKModuleMemoryFileSystem() {
 		KieServices kieServices = KieServices.Factory.get();
 		KieResources kieResources = kieServices.getResources();
-		ReleaseId releaseId = kieServices.newReleaseId("spongecell", "core", "0.0.1-SNAPSHOT");
+		
+		// Create a release identifier, based on maven's 
+		// artifact identification: group, artifactId, version.
+		//*****************************************************
+		ReleaseId releaseId = kieServices.newReleaseId(
+			"spongecell", "core", "0.0.1-SNAPSHOT");
 		
 		//************************************************************
-		// Generate kmodule.xml in the memory file system. 
+		// Generate the Module, Model and Session. 
 		//************************************************************
 		KieModuleModel kieModuleModel = kieServices.newKieModuleModel();
 	    KieBaseModel kieBaseModel1 = kieModuleModel.newKieBaseModel("KBase1")
@@ -118,17 +121,25 @@ public class KieSessionHandler {
 	        .setType(KieSessionModel.KieSessionType.STATEFUL)
 	        .setClockType(ClockTypeOption.get("realtime"));
 	    
-	    // Write the module to the MFS - Memory File System.
+	    // Write the rules to the MFS - Memory File System.
+	    //*********************************************************
 		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();		
 		
 		for (String rule : rules) {
-			InputStream ruleIn = getClass().getResourceAsStream("/" + rulesPath + "/" + rule);
+			InputStream ruleIn = getClass().getResourceAsStream(
+					"/" + rulesPath + "/" + rule);
 			Assert.assertNotNull(ruleIn);
 			String path = basePath + "/"  + rulesPath + "/" + rule;
 			kieFileSystem.write(path,
 					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
 		}	
+	    // Write the Module to the MFS - Memory File System.
+	    //*********************************************************
 	    kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
+	    
+	    // Write the pom to the MFS - Memory File System.
+	    // Note: without this step, the Module cannot be accessed.
+	    //*********************************************************
 	    kieFileSystem.generateAndWritePomXML(releaseId);
 	    log.info(kieModuleModel.toXML());
 
@@ -169,4 +180,141 @@ public class KieSessionHandler {
 	    KieSession kieSession = kieContainer.newKieSession(sessionName);
 		return kieSession;
 	}
+	
+	public KieSession buildKieSessionReleaseId(String groupId,
+			String artifactId, String version) {
+		KieServices kieServices = KieServices.Factory.get();
+		KieResources kieResources = kieServices.getResources();
+		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+		kieRepository = kieServices.getRepository();
+		ReleaseId releaseId = kieServices.newReleaseId(
+			groupId, artifactId, version);
+		
+		for (String rule : rules) {
+			InputStream ruleIn = getClass().getResourceAsStream("/" + rulesPath + "/" + rule);
+			Assert.assertNotNull(ruleIn);
+			String path = basePath + "/"  + rulesPath + "/" + rule;
+			kieFileSystem.write(path,
+					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
+		}	
+		// Write the Module to the MFS - Memory File System.
+	    //*********************************************************
+	    kieFileSystem.generateAndWritePomXML(releaseId);
+	    
+		KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+		kb.buildAll();
+
+		if (kb.getResults().hasMessages(Level.ERROR)) {
+			throw new RuntimeException("Build Errors:\n"
+					+ kb.getResults().toString());
+		}
+		KieContainer kieContainer = kieServices.newKieContainer(releaseId);
+
+		kieSession = kieContainer.newKieSession("KSession2");
+		kieSession.addEventListener(new RuleEventListener());
+		kieSession.addEventListener(new DebugRuleRuntimeEventListener());		
+		return kieSession;
+	}	
+	
+	public KieSession buildKIESessionKModuleMemoryFileSystem(
+			String groupId, 
+			String artifactId, 
+			String version, 
+			String modelId, 
+			String sessionId) {
+		KieServices kieServices = KieServices.Factory.get();
+		KieResources kieResources = kieServices.getResources();
+		
+		// Create a release identifier, based on maven's 
+		// artifact identification: group, artifactId, version.
+		//*****************************************************
+		ReleaseId releaseId = kieServices.newReleaseId(groupId, artifactId, version);
+		
+		// Build the module which contains the knowledge-base 
+		// and the session.
+		//****************************************************
+		KieModuleModel kieModuleModel = buildKieModule(kieServices, modelId, sessionId);
+	
+		// Store the kieModule and the rules in the memory files system.
+		//**************************************************************
+		KieFileSystem kieFileSystem = buildKieFileSystem(kieServices,
+				kieResources, kieModuleModel, releaseId);
+	    
+		// Build the container with the compiled knowledge-base
+		// and the releaseId.
+		//*****************************************************
+		KieContainer kieContainer = buildKieContainer(kieServices,
+				kieFileSystem, releaseId);
+	    
+	    KieSession kieSession = kieContainer.newKieSession(sessionId);
+	
+		return kieSession;
+	}	
+	
+	private KieModuleModel buildKieModule (KieServices kieServices, String modelId, String sessionId) {
+		//************************************************************
+		// Generate the Module, Model and Session. 
+		//************************************************************
+		KieModuleModel kieModuleModel = kieServices.newKieModuleModel();
+		KieBaseModel kieBaseModel1 = kieModuleModel.newKieBaseModel(modelId)
+				.setDefault(true)
+				.setEqualsBehavior(EqualityBehaviorOption.EQUALITY)
+				.setEventProcessingMode(EventProcessingOption.CLOUD);
+
+		kieBaseModel1.newKieSessionModel(sessionId)
+			.setDefault(true)
+			.setType(KieSessionModel.KieSessionType.STATEFUL)
+			.setClockType(ClockTypeOption.get("realtime"));
+		
+		return kieModuleModel;
+	}
+
+	private KieFileSystem buildKieFileSystem (
+		KieServices kieServices, 
+		KieResources kieResources, 
+		KieModuleModel kieModuleModel,
+		ReleaseId releaseId) {
+		
+	    // Write the rules to the MFS - Memory File System.
+	    //*********************************************************
+		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();		
+		
+		for (String rule : rules) {
+			InputStream ruleIn = getClass().getResourceAsStream(
+					"/" + rulesPath + "/" + rule);
+			Assert.assertNotNull(ruleIn);
+			String path = basePath + "/"  + rulesPath + "/" + rule;
+			kieFileSystem.write(path,
+					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
+		}	
+	    // Write the Module to the MFS - Memory File System.
+	    //*********************************************************
+	    kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
+	    
+	    // Write the pom to the MFS - Memory File System.
+	    // Note: without this step, the Module cannot be accessed.
+	    //*********************************************************
+	    kieFileSystem.generateAndWritePomXML(releaseId);
+	    log.info(kieModuleModel.toXML());
+	    
+	    return kieFileSystem;
+	}
+	
+	private KieContainer buildKieContainer(KieServices kieServices,
+			KieFileSystem kieFileSystem, ReleaseId releaseId) {
+		
+		 // Build the rules for this module. Note that the 
+	    // module is contained within the file system.
+	    //*****************************************************
+	    KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
+		kb.buildAll();
+		
+		if (kb.getResults().hasMessages(Level.ERROR)) {
+			throw new RuntimeException("Build Errors:\n"
+					+ kb.getResults().toString());
+		}	   
+		KieContainer kieContainer = kieServices.newKieContainer(releaseId); 
+		
+	    return kieContainer;
+	}	
 }
