@@ -6,7 +6,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.kie.api.builder.KieRepository;
-import org.kie.api.builder.KieScannerFactoryService;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,10 +17,15 @@ import org.testng.annotations.Test;
 import spongecell.guardian.model.Person;
 
 @Slf4j
-@ContextConfiguration(classes = { KIESpringBusinessRulesTest.class, KieSessionHandler.class })
+@ContextConfiguration(classes = { 
+	KIESpringBusinessRulesTest.class, 
+	KieSessionHandler.class,
+	KieMemoryFileSystemSessionHandler.class
+})
 @EnableConfigurationProperties ({ })
 public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests {
 	private @Autowired KieSessionHandler kieSessionHandler;
+	private @Autowired KieMemoryFileSystemSessionHandler kieMFSessionHandler;
 	private static final String PATH = "testPath";
 	private static final String BASE_PATH = "src/main/resources";
 	private static final String RULES_PATH = "spongecell/guardian/rules/core";
@@ -156,6 +160,27 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 		//******************************************************
 		KieSession kieSession2 = kieSessionHandler.getRepositorySession(
 			"spongecell", "core-alpha", 
+			"0.0.1-SNAPSHOT", "heston-session-alpha");
+		validateSession(kieSession2);
+		log.info("Test");
+	}	
+	
+	@Test
+	public void validateKieMFSessionHandler () {
+		KieSession kieSession1 = kieMFSessionHandler.newBuilder()
+			.addGroupId("spongecell")
+			.addArtifactId("core-alpha")
+			.addVersion("0.0.1-SNAPSHOT")
+			.addModelId("heston-module-alpha")
+			.addSessionId("heston-session-alpha")
+			.build();
+		validateSession(kieSession1);
+		
+		// Now get the module from the repository and validate
+		// that the rules fire correctly.
+		//******************************************************
+		KieSession kieSession2 = kieMFSessionHandler.getRepositorySession(
+				"spongecell", "core-alpha", 
 			"0.0.1-SNAPSHOT", "heston-session-alpha");
 		validateSession(kieSession2);
 		log.info("Test");
