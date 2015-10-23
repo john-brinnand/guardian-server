@@ -11,6 +11,7 @@ import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.KieScanner;
 import org.kie.api.builder.Message.Level;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.builder.model.KieBaseModel;
@@ -32,7 +33,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix="kiesession.handler")
 public class KieMemoryFileSystemSessionHandler {
 	private String path;
-	private KieSession kieSession;
+	private KieScanner kieScanner;
 	private KieRepository kieRepository = null;
 	private String[] rules;
 	private String basePath = "src/main/resources";
@@ -90,17 +91,20 @@ public class KieMemoryFileSystemSessionHandler {
 		public KieSession build () {
 			KieServices kieServices = KieServices.Factory.get();
 			KieResources kieResources = kieServices.getResources();
-			kieRepository = kieServices.getRepository();
-
+			if (kieRepository == null) {
+				kieRepository = kieServices.getRepository();
+			}
 			// Create a release identifier, based on maven's 
 			// artifact identification: group, artifactId, version.
 			//*****************************************************
-			ReleaseId releaseId = kieServices.newReleaseId(groupId, artifactId, version);
+			ReleaseId releaseId = kieServices.newReleaseId(
+					groupId, artifactId, version);
 
 			// Build the module which contains the knowledge-base 
 			// and the session.
 			//****************************************************
-			KieModuleModel kieModuleModel = buildKieModule(kieServices, modelId, sessionId);
+			KieModuleModel kieModuleModel = buildKieModule(
+					kieServices, modelId, sessionId);
 
 			// Store the kieModule and the rules in the memory files system.
 			//**************************************************************
@@ -112,8 +116,13 @@ public class KieMemoryFileSystemSessionHandler {
 			//*****************************************************
 			KieContainer kieContainer = buildKieContainer(kieServices,
 					kieFileSystem, releaseId);
-
-			kieSession = kieContainer.newKieSession(sessionId);
+			
+			// Start polling the Maven repository. 
+			if (kieScanner == null) {
+				kieScanner = kieServices.newKieScanner( kieContainer );
+				kieScanner.start( 10000L );
+			}
+			KieSession kieSession = kieContainer.newKieSession(sessionId);
 
 			return kieSession;
 		}	
@@ -196,9 +205,9 @@ public class KieMemoryFileSystemSessionHandler {
 	 * @return
 	 */
 	private KieContainer buildKieContainer(KieServices kieServices,
-			KieFileSystem kieFileSystem, ReleaseId releaseId) {
+		KieFileSystem kieFileSystem, ReleaseId releaseId) {
 		
-		 // Build the rules for this module. Note that the 
+		// Build the rules for this module. Note that the 
 	    // module is contained within the file system.
 	    //*****************************************************
 	    KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
@@ -230,4 +239,4 @@ public class KieMemoryFileSystemSessionHandler {
 	    KieSession kieSession = kieContainer.newKieSession(sessionName);
 		return kieSession;
 	}	
-}	
+}
