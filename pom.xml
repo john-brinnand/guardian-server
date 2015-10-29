@@ -180,7 +180,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>spongecell.event.handler.application.EventHandlerResourceApplication</mainClass>
+							<mainClass>spongecell.guardian.application.GuardianApplication</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

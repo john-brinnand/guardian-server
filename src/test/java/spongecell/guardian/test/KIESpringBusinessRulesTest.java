@@ -5,7 +5,9 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
+import org.kie.api.definition.rule.Rule;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -14,6 +16,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import spongecell.guardian.handler.KieMemoryFileSystemSessionHandler;
 import spongecell.guardian.model.Person;
 
 @Slf4j
@@ -125,7 +128,6 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 		validateSession(kieSession);
 		kieSessionHandler.scanKieRepository("spongecell", "core",
 				"0.0.1-SNAPSHOT", "KSession1");
-		log.info("Pause");
 	}	
 
 	@Test
@@ -162,27 +164,48 @@ public class KIESpringBusinessRulesTest extends AbstractTestNGSpringContextTests
 			"spongecell", "core-alpha", 
 			"0.0.1-SNAPSHOT", "heston-session-alpha");
 		validateSession(kieSession2);
-		log.info("Test");
 	}	
-	
+	/**
+	 * This tests the on-demand use case in which 
+	 * a user requests a new set of rules to be added
+	 * to, and executed by, the engine.
+	 */
 	@Test
 	public void validateKieMFSessionHandler () {
+		final String groupId = "spongecell";
+		final String artifactId = "core-alpha";
+		final String version = "0.0.1-SNAPSHOT";
+		final String moduleId = "heston-module-alpha";
+		final String sessionId = "heston-session-alpha";
+		final String ruleName = "Person is 21";
+		final String rulePackage = "spongecell.guardian.rules.core";
+		
 		KieSession kieSession1 = kieMFSessionHandler.newBuilder()
-			.addGroupId("spongecell")
-			.addArtifactId("core-alpha")
-			.addVersion("0.0.1-SNAPSHOT")
-			.addModelId("heston-module-alpha")
-			.addSessionId("heston-session-alpha")
+			.addGroupId(groupId)
+			.addArtifactId(artifactId)
+			.addVersion(version)
+			.addModelId(moduleId)
+			.addSessionId(sessionId)
 			.build();
 		validateSession(kieSession1);
 		
-		// Now get the module from the repository and validate
-		// that the rules fire correctly.
-		//******************************************************
+		// Now get the module from the repository 
+		// and validate that the rules fire correctly.
+		//*********************************************
 		KieSession kieSession2 = kieMFSessionHandler.getRepositorySession(
-				"spongecell", "core-alpha", 
-			"0.0.1-SNAPSHOT", "heston-session-alpha");
+			groupId, artifactId, version, sessionId);
+		Assert.assertNotNull(kieSession2);
+		
 		validateSession(kieSession2);
-		log.info("Test");
+		
+		Rule rule = kieSession2.getKieBase().getRule(rulePackage, ruleName);
+		Assert.assertEquals(rule.getName(), ruleName);
+		
+		KieModule kieModule = kieMFSessionHandler.getModule(
+			groupId, artifactId, version, sessionId);
+		Assert.assertNotNull(kieModule);
+		Assert.assertEquals(kieModule.getReleaseId().getGroupId(), groupId);
+		Assert.assertEquals(kieModule.getReleaseId().getArtifactId(), artifactId);
+		Assert.assertEquals(kieModule.getReleaseId().getVersion(), version);
 	}	
 }	

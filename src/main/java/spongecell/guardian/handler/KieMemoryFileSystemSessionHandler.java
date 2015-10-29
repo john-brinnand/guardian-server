@@ -1,4 +1,4 @@
-package spongecell.guardian.test;
+package spongecell.guardian.handler;
 
 import java.io.InputStream;
 
@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.builder.Message.Level;
@@ -41,7 +42,7 @@ public class KieMemoryFileSystemSessionHandler {
 
 	private KieMemoryFileSystemSessionHandler() {}
 
-	protected Builder newBuilder () {
+	public Builder newBuilder () {
 		return new Builder();
 	}
 	/**
@@ -131,6 +132,11 @@ public class KieMemoryFileSystemSessionHandler {
 	/**
 	 * Build the KieModule.
 	 * 
+	 * "13.2.1. KieModule
+ 	 * The <kie:kmodule> defines a collection of KieBase and associated KieSession's. 
+ 	 * The kmodule tag has one MANDATORY parameter 'id'.
+	 * A kmodule tag can contain only the following tags as children. kie:kbase "
+	 *
 	 * @param kieServices
 	 * @param modelId
 	 * @param sessionId
@@ -238,5 +244,13 @@ public class KieMemoryFileSystemSessionHandler {
 		KieContainer kieContainer = kieServices.newKieContainer(releaseId);
 	    KieSession kieSession = kieContainer.newKieSession(sessionName);
 		return kieSession;
+	}	
+	
+	public KieModule getModule(String groupId, 
+		String artifactId, String version, String sessionName) {
+		KieServices kieServices = KieServices.Factory.get();
+		ReleaseId releaseId = kieServices.newReleaseId(groupId, artifactId, version);
+		KieModule kieModule = kieServices.getRepository().getKieModule(releaseId);
+		return kieModule;
 	}	
 }

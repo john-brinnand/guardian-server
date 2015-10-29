@@ -48,20 +48,24 @@ public class GuardianResource {
 		return response; 
 	}	
 	
-//	@RequestMapping(method = RequestMethod.GET)
-//	public ResponseEntity<?> validator(HttpServletRequest request,
-//			@RequestParam(value = "name") String name, 
-//			@RequestParam(value="batchId") String batchId ) throws Exception {
-//		String content =  name + ":" + "testValue";
-//		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
-//		return response; 
-//	}	
-	
 	@RequestMapping(method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteRequestParamEndpoint(HttpServletRequest request,
 			@RequestParam(value = "id") String id) throws Exception {
 		String content =  "Deleted " + id + ":" + "testValue";
 		log.info("Returning {} for id {}", content, id);
+		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
+		return response; 
+	}	
+	
+	@RequestMapping("/monitor")
+	public ResponseEntity<?> monitor(HttpServletRequest request,
+			@RequestParam(value = "op") String op, 
+			@RequestParam (value="duration") String duration) throws Exception {
+		String content = "";
+		if (op.equals("start")) {
+			content = "Starting the monitor"; 
+		}
+		log.info("Returnin : {} ", content);
 		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
 		return response; 
 	}	
