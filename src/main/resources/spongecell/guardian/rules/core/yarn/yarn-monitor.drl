@@ -1,0 +1,21 @@
+package spongecell.guardian.rules.core
+ 
+import spongecell.guardian.agent.yarn.model.ResourceManagerAppStatus 
+import spongecell.guardian.notification.SimpleMailClient 
+import spongecell.guardian.notification.GuardianEvent 
+import spongecell.guardian.notification.SlackGuardianWebHook  
+
+/*
+ * This rule checks that the number of files in a directory.
+ */
+dialect "mvel"
+
+rule "Yarn.ResourceManager.Monitor.1"
+    when
+        $rmAppStatus : ResourceManagerAppStatus(active == Boolean.TRUE) 
+    then
+        System.out.println("Hello World! **************** ResourceManagerCheck is active: " + $rmAppStatus.isActive());
+        System.out.println(drools.getRule().getName() + " App State is: " + 
+        	$rmAppStatus.getState() + " App Final Status is: " + 
+        	$rmAppStatus.getFinalStatus());
+end

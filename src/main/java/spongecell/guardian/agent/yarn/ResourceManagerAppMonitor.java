@@ -1,4 +1,4 @@
-package spongecell.guaradian.agent.yarn;
+package spongecell.guardian.agent.yarn;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +75,7 @@ public class ResourceManagerAppMonitor {
 		response = requestAppStatus(appId);
 		String appStatus = getContent(response.getEntity().getContent());
 		JsonNode jsonAppStatus = new ObjectMapper().readTree(appStatus);
-		log.info(new ObjectMapper().writerWithDefaultPrettyPrinter()
+		log.debug(new ObjectMapper().writerWithDefaultPrettyPrinter()
 			.writeValueAsString(jsonAppStatus));
 		response.close();
 		return jsonAppStatus;
