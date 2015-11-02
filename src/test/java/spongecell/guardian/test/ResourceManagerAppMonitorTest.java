@@ -41,12 +41,12 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 	private @Autowired KieMemoryFileSystemSessionHandler kieMFSessionHandler;	
 	private KieSession kieSession;	
 	private static final String WORDCOUNT = "word count";
-	private static final String USER = "root";
 	private static final String groupId = "spongecell";
 	private static final String artifactId = "yarn-monitor";
 	private static final String version = "0.0.1-SNAPSHOT";
 	private static final String moduleId = "yarn-monitor-module-v1";
 	private static final String sessionId = "yarn-session-v1";
+	private static final String [] USERS = { "spongecell", "heston", "root"} ;
 	
 	@BeforeClass
 	public void initKieMFSessionHandler() {
@@ -142,7 +142,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void validateResourceManagerAppMonitorUser() throws IllegalStateException,
+	public void validateResourceManagerAppMonitorUsers() throws IllegalStateException,
 			IOException, InterruptedException {
 		JsonNode appStatus = null;
 		String runState = ""; 
@@ -152,7 +152,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 			log.info("*************** Getting the applications' status.***************");
 			
 			appStatus = resourceManagerAppMonitor
-					.getResourceManagerAppStatusUser(USER);
+					.getResourceManagerAppStatusUser(USERS);
 			Assert.assertNotNull(appStatus);
 			
 			runState = appStatus.get(APP).get(STATE).asText();

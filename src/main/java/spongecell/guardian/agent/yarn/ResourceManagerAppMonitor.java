@@ -81,7 +81,7 @@ public class ResourceManagerAppMonitor {
 		return jsonAppStatus;
 	}
 	
-	public JsonNode getResourceManagerAppStatusUser(String user)
+	public JsonNode getResourceManagerAppStatusUser(String[] users)
 			throws IllegalStateException, IOException, InterruptedException {
 
 		String appId = null; 
@@ -94,7 +94,7 @@ public class ResourceManagerAppMonitor {
 			// Get the application's id.
 			// **************************
 			InputStream is = response.getEntity().getContent();
-			appId = getUserAppId(user, is);
+			appId = getUserAppId(users, is);
 			Thread.sleep(1000);
 			log.info("AppId is: {} ", appId);
 			response.close();
@@ -277,7 +277,7 @@ public class ResourceManagerAppMonitor {
 		return appId;
 	}
 	
-	public String getUserAppId(String user, InputStream is)
+	public String getUserAppId(String[] users, InputStream is)
 			throws JsonProcessingException, IOException {
 		String appId = null;
 		String appStatus = getContent(is);
@@ -292,12 +292,14 @@ public class ResourceManagerAppMonitor {
 				Iterator<JsonNode> properties = element.iterator();
 				while (properties.hasNext()) {
 					JsonNode property = properties.next();
-					if (property.get("user").asText().equals(user)) {
-						String trackingUrl = property.get("trackingUrl")
-								.toString();
-						String[] urlElements = trackingUrl.split("/");
-						appId = urlElements[urlElements.length - 2];
-						break;
+					for (String user : users) {
+						if (property.get("user").asText().equals(user)) {
+							String trackingUrl = property.get("trackingUrl")
+									.toString();
+							String[] urlElements = trackingUrl.split("/");
+							appId = urlElements[urlElements.length - 2];
+							break;
+						}
 					}
 				}
 			}
