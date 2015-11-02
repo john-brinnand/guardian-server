@@ -1,19 +1,18 @@
 package spongecell.guardian.agent.yarn.model;
 
-import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.*;
-
-import java.util.Iterator;
-
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.APP;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.FINAL_STATUS;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.STATE;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author jbrinnand
  */
-@Slf4j
 @Getter @Setter
 public class ResourceManagerAppStatus {
 	private JsonNode appStatus;
@@ -27,18 +26,42 @@ public class ResourceManagerAppStatus {
 		return appStatus.get(APP).get(STATE).asText();
 	}
 	
-	public String getFinalStatus () {
-		return appStatus.get(APP).get(FINAL_STATUS).asText();
+	public String getStatus () {
+		ObjectNode node =  JsonNodeFactory.instance.objectNode();
+		node.set("app", JsonNodeFactory.instance.objectNode());
+		
+		((ObjectNode)node.get("app")).put("user", appStatus.get("app").get("user").asText());
+		((ObjectNode)node.get("app")).put("name", appStatus.get("app").get("name").asText());
+		((ObjectNode)node.get("app")).put("state", appStatus.get("app").get("state").asText());
+		((ObjectNode)node.get("app")).put("queue", appStatus.get("app").get("queue").asText());
+	
+		return node.asText(); 
 	}	
 	
-	public String getFileStatus() {
-		StringBuffer sbuf = new StringBuffer();
-		Iterator<JsonNode> nodes = appStatus.iterator();
-		while (nodes.hasNext()) {
-			JsonNode node = nodes.next();
-			sbuf.append(node.toString() + "\n");
-		}
-		log.info("*********************** \n" + sbuf.toString());
-		return sbuf.toString();
+	public String getManagedObject() {
+		return appStatus.get(APP).get("name").asText();
 	} 
+	
+	public JsonNode getBody() {
+		ObjectNode node =  JsonNodeFactory.instance.objectNode();
+		node.set("app", JsonNodeFactory.instance.objectNode());
+		((ObjectNode)node.get("app")).put("user", appStatus.get("app").get("user").asText());
+		((ObjectNode)node.get("app")).put("name", appStatus.get("app").get("name").asText());
+		((ObjectNode)node.get("app")).put("state", appStatus.get("app").get("state").asText());
+		((ObjectNode)node.get("app")).put("queue", appStatus.get("app").get("queue").asText());
+		((ObjectNode)node.get("app")).put("finalStatus", 
+				appStatus.get("app").get("finalStatus").asText());	
+			((ObjectNode)node.get("app")).put("finalStatus", 
+				appStatus.get("app").get("finalStatus").asText());	
+		((ObjectNode)node.get("app")).put("applicationType", 
+				appStatus.get("app").get("applicationType").asText());	
+		((ObjectNode)node.get("app")).put("startedTime", 
+				appStatus.get("app").get("startedTime").asText());	
+		((ObjectNode)node.get("app")).put("finishedTime", 
+				appStatus.get("app").get("finishedTime").asText());	
+		((ObjectNode)node.get("app")).put("elapsedTime", 
+				appStatus.get("app").get("elapsedTime").asText());	
+		
+		return node; 
+	}
 }

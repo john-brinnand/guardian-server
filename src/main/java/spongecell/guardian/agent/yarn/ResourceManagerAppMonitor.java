@@ -70,8 +70,8 @@ public class ResourceManagerAppMonitor {
 			return node;
 		}
 		
-		// TODO: Extract the appId, return it as a fact.
-		//**********************************************
+		// Extract the appId, return it as a fact.
+		//*****************************************
 		response = requestAppStatus(appId);
 		String appStatus = getContent(response.getEntity().getContent());
 		JsonNode jsonAppStatus = new ObjectMapper().readTree(appStatus);
@@ -80,6 +80,46 @@ public class ResourceManagerAppMonitor {
 		response.close();
 		return jsonAppStatus;
 	}
+	
+	public JsonNode getResourceManagerAppStatusUser(String user)
+			throws IllegalStateException, IOException, InterruptedException {
+
+		String appId = null; 
+		CloseableHttpResponse response = null; 
+		int retryCount = 5;
+		do {
+			response = requestResourceManagerAppsStatus();
+			response.getStatusLine().getStatusCode();
+
+			// Get the application's id.
+			// **************************
+			InputStream is = response.getEntity().getContent();
+			appId = getUserAppId(user, is);
+			Thread.sleep(1000);
+			log.info("AppId is: {} ", appId);
+			response.close();
+			retryCount--;
+		} while (appId == null && retryCount > 0);
+		
+		if (appId == null) {
+			ObjectNode node = JsonNodeFactory.instance.objectNode();
+			node.set("app", JsonNodeFactory.instance.objectNode());
+			((ObjectNode)node.get("app")).put("state", "UNKNOWN");
+			((ObjectNode)node.get("app")).put("finalStatus", "UNKNOWN");
+			return node;
+		}
+		
+		// Extract the appId, return it as a fact.
+		//*****************************************
+		response = requestAppStatus(appId);
+		String appStatus = getContent(response.getEntity().getContent());
+		JsonNode jsonAppStatus = new ObjectMapper().readTree(appStatus);
+		log.debug(new ObjectMapper().writerWithDefaultPrettyPrinter()
+			.writeValueAsString(jsonAppStatus));
+		response.close();
+		return jsonAppStatus;
+	}
+	
 
 	/**
 	 * http://hadoop-production-resourcemanager.spongecell.net:8088/
@@ -225,6 +265,34 @@ public class ResourceManagerAppMonitor {
 				while (properties.hasNext()) {
 					JsonNode property = properties.next();
 					if (property.get("name").asText().equals(appName)) {
+						String trackingUrl = property.get("trackingUrl")
+								.toString();
+						String[] urlElements = trackingUrl.split("/");
+						appId = urlElements[urlElements.length - 2];
+						break;
+					}
+				}
+			}
+		}
+		return appId;
+	}
+	
+	public String getUserAppId(String user, InputStream is)
+			throws JsonProcessingException, IOException {
+		String appId = null;
+		String appStatus = getContent(is);
+
+		Iterator<JsonNode> appsIter = new ObjectMapper().readTree(appStatus)
+				.elements();
+		while (appsIter.hasNext()) {
+			JsonNode app = appsIter.next();
+			Iterator<JsonNode> elements = app.elements();
+			while (elements.hasNext()) {
+				JsonNode element = elements.next();
+				Iterator<JsonNode> properties = element.iterator();
+				while (properties.hasNext()) {
+					JsonNode property = properties.next();
+					if (property.get("user").asText().equals(user)) {
 						String trackingUrl = property.get("trackingUrl")
 								.toString();
 						String[] urlElements = trackingUrl.split("/");

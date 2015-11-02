@@ -1,5 +1,9 @@
 package spongecell.guardian.test;
 
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.APP;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.FINAL_STATUS;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.STATE;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 
@@ -12,21 +16,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import spongecell.guardian.agent.yarn.ResourceManagerAppMonitor;
+import spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.RunStates;
 import spongecell.guardian.agent.yarn.model.ResourceManagerAppStatus;
+import spongecell.guardian.agent.yarn.model.ResourceManagerEvent;
 import spongecell.guardian.handler.KieMemoryFileSystemSessionHandler;
-import spongecell.guardian.model.HDFSDirectory;
-import spongecell.guardian.notification.GuardianEvent;
 import spongecell.guardian.notification.SlackGuardianWebHook;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.*;
 
 @Slf4j
 @ContextConfiguration(classes = { 
@@ -40,6 +41,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 	private @Autowired KieMemoryFileSystemSessionHandler kieMFSessionHandler;	
 	private KieSession kieSession;	
 	private static final String WORDCOUNT = "word count";
+	private static final String USER = "root";
 	private static final String groupId = "spongecell";
 	private static final String artifactId = "yarn-monitor";
 	private static final String version = "0.0.1-SNAPSHOT";
@@ -57,7 +59,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 			.build();
 	}
 
-	@Test
+	@Test(groups="resource-manager")
 	public void validateAppMonitorConfiguration() {
 		final String CLUSTER = "ws/v1/cluster";
 		final String ENDPOINT = "apps";
@@ -94,7 +96,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	@Test
+	@Test(groups="resource-manager")
 	public void validateResourceManagerApps() throws IllegalStateException,
 			IOException, InterruptedException {
 		JsonNode appStatus = null;
@@ -106,6 +108,51 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 			
 			appStatus = resourceManagerAppMonitor
 					.getResourceManagerAppStatus(WORDCOUNT);
+			Assert.assertNotNull(appStatus);
+			
+			runState = appStatus.get(APP).get(STATE).asText();
+			finalStatus = appStatus.get(APP).get(FINAL_STATUS).asText();
+			
+			if (runState.equals(RunStates.RUNNING.name()) && 
+				finalStatus.equals(RunStates.UNDEFINED.name()) && 
+				validation == false) {
+				validateYarnMonitorRules(appStatus);
+				validation = true;
+			}
+		} while (runState.equals(RunStates.UNKNOWN.name()) && 
+				finalStatus.equals(RunStates.UNKNOWN.name()) || 
+				((runState.equals(RunStates.RUNNING.name()) && 
+				finalStatus.equals(RunStates.UNDEFINED.name()))));
+
+		Assert.assertEquals(appStatus.get(APP).get(STATE).asText(),
+				RunStates.FINISHED.name());
+		Assert.assertEquals(appStatus.get(APP).get(FINAL_STATUS).asText(),
+				RunStates.SUCCEEDED.name());
+		
+		validateYarnMonitorRules(appStatus);
+	}
+	
+	
+	/**
+	 * Note: this test requires the wordcount test to be runnning in the local
+	 * hadoop cluster within the docker container.
+	 * 
+	 * @throws IllegalStateException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void validateResourceManagerAppMonitorUser() throws IllegalStateException,
+			IOException, InterruptedException {
+		JsonNode appStatus = null;
+		String runState = ""; 
+		String finalStatus = ""; 
+		boolean validation = false; 
+		do {
+			log.info("*************** Getting the applications' status.***************");
+			
+			appStatus = resourceManagerAppMonitor
+					.getResourceManagerAppStatusUser(USER);
 			Assert.assertNotNull(appStatus);
 			
 			runState = appStatus.get(APP).get(STATE).asText();
@@ -144,12 +191,16 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 		resourceManagerAppStatus.setAppStatus(appStatus);
 		resourceManagerAppStatus.setActive(true);
 		
+		ResourceManagerEvent event = new ResourceManagerEvent() ;
+		event.dateTime = LocalDateTime.now( ).toString();
+		event.setEventSeverity(ResourceManagerEvent.severity.INFORMATIONAL.name());
+		
 		SlackGuardianWebHook slackClient = new SlackGuardianWebHook();
-		if (kieSession == null) {
-			kieSession = kieMFSessionHandler.getRepositorySession(
+		
+		kieSession = kieMFSessionHandler.getRepositorySession(
 				groupId, artifactId, version, sessionId);
-		}
-		Object[] facts = { resourceManagerAppStatus, slackClient };
+		
+		Object[] facts = { resourceManagerAppStatus, event, slackClient };
 		for (Object fact : facts) {
 			kieSession.insert(fact);
 		}

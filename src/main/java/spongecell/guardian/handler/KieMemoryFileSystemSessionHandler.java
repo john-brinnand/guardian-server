@@ -215,6 +215,8 @@ public class KieMemoryFileSystemSessionHandler {
 		
 		// Build the rules for this module. Note that the 
 	    // module is contained within the file system.
+		// And the 'kieModule is automatically deployed to the
+		// KieRepository if it is successfully built'.
 	    //*****************************************************
 	    KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
 		kb.buildAll();
