@@ -144,5 +144,6 @@ public class YarnResourceManagerAgent implements Agent {
 			kieSession.insert(fact);
 		}
 		kieSession.fireAllRules();
+		kieSession.dispose();
 	}	
 }
