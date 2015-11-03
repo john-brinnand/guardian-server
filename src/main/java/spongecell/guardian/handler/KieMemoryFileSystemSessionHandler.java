@@ -119,10 +119,10 @@ public class KieMemoryFileSystemSessionHandler {
 					kieFileSystem, releaseId);
 			
 			// Start polling the Maven repository. 
-			if (kieScanner == null) {
-				kieScanner = kieServices.newKieScanner( kieContainer );
-				kieScanner.start( 10000L );
-			}
+//			if (kieScanner == null) {
+//				kieScanner = kieServices.newKieScanner( kieContainer );
+//				kieScanner.start( 10000L );
+//			}
 			KieSession kieSession = kieContainer.newKieSession(sessionId);
 
 			return kieSession;

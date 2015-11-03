@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import spongecell.guardian.agent.yarn.ResourceManagerAppMonitor;
 import spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.RunStates;
+import spongecell.guardian.agent.yarn.YarnResourceManagerAgent;
 import spongecell.guardian.agent.yarn.model.ResourceManagerAppStatus;
 import spongecell.guardian.agent.yarn.model.ResourceManagerEvent;
 import spongecell.guardian.handler.KieMemoryFileSystemSessionHandler;
@@ -59,7 +60,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 			.build();
 	}
 
-	@Test(groups="resource-manager")
+	@Test
 	public void validateAppMonitorConfiguration() {
 		final String CLUSTER = "ws/v1/cluster";
 		final String ENDPOINT = "apps";
@@ -96,7 +97,7 @@ public class ResourceManagerAppMonitorTest extends AbstractTestNGSpringContextTe
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	@Test(groups="resource-manager")
+	@Test
 	public void validateResourceManagerApps() throws IllegalStateException,
 			IOException, InterruptedException {
 		JsonNode appStatus = null;

@@ -8,10 +8,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter @Setter
-@ConfigurationProperties(prefix ="eventhandler.scheduler")
+@ConfigurationProperties(prefix ="app.monitor.scheduler")
 public class ResourceManagerAppMonitorSchedulerConfiguration {
 	public Integer initialDelay = 1;
-	public Integer period = 3000;
+	public Integer period = 180000;
 	public TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-	
 }

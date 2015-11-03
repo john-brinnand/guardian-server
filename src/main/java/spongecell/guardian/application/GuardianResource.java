@@ -3,6 +3,7 @@ package spongecell.guardian.application;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,11 @@ import com.fasterxml.jackson.core.util.ByteArrayBuilder;
 @RestController
 @RequestMapping("/v1/guardian")
 public class GuardianResource {
-	
+
+	@PostConstruct
+	public void loadCoreSessions() {
+		
+	}
 	@RequestMapping("/ping")
 	public ResponseEntity<?> icmpEcho(HttpServletRequest request) throws Exception {
 		InputStream is = request.getInputStream();

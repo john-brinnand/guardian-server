@@ -1,13 +1,16 @@
 package spongecell.guardian.agent.yarn;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +18,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.util.Assert;
 
 @Slf4j
-@Getter
+@Getter @Setter
 @EnableConfigurationProperties({ ResourceManagerAppMonitorSchedulerConfiguration.class })
 public class ResourceManagerAppMonitorScheduler {
-	@Autowired 
-	ResourceManagerAppMonitorSchedulerConfiguration config;
-	@Autowired 
-	private final ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+	@Autowired ResourceManagerAppMonitorSchedulerConfiguration config;
+//	private final ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+	private final ExecutorService pool = Executors.newScheduledThreadPool(1);
+	private Future<?> future; 
+	private Agent agent;
 
 	/**
 	 * Start the data load.
@@ -31,7 +35,7 @@ public class ResourceManagerAppMonitorScheduler {
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public ScheduledFuture<?> loadData() throws TimeoutException, 
+	public Future<?> run() throws TimeoutException, 
 		InterruptedException, ExecutionException {
 		
 		// Note: the topic and groupId must be set in 
@@ -39,21 +43,24 @@ public class ResourceManagerAppMonitorScheduler {
 		// will be in effect and data may not be received
 		// from Kafka.
 		//************************************************
-		Integer initialDelay = config.getInitialDelay();
-		Integer period = config.getPeriod();
-		TimeUnit timeUnit = config.getTimeUnit();
-
-		ScheduledFuture<?> future = pool.scheduleAtFixedRate(new Runnable() {
+		future = pool.submit(new Runnable() {
 			@Override
 			public void run() {
-				final long endTime;
-				final long startTime = System.currentTimeMillis();
-				endTime = System.currentTimeMillis();
-				log.info("------------------  Monitor Completed  in {} {} ", 
-					endTime - startTime, TimeUnit.MILLISECONDS.toString().toLowerCase());
+				while (true) {
+					final long endTime;
+					final long startTime = System.currentTimeMillis();
+					agent.getStatus();
+					endTime = System.currentTimeMillis();
+					log.info("------------------  Monitor Completed  in {} {} ", 
+							endTime - startTime, TimeUnit.MILLISECONDS.toString().toLowerCase());
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						log.info("Error - thread interrupted: {} ", e.toString());
+					}
+				}
 			}
-		}, initialDelay, period, timeUnit);
-		
+		});
 		return future;
 	}
 
@@ -63,6 +70,7 @@ public class ResourceManagerAppMonitorScheduler {
 	 * @throws InterruptedException
 	 */
 	public void shutdown() throws InterruptedException {
+		future.cancel(true);
 		pool.shutdown();
 		pool.awaitTermination(5000, TimeUnit.MILLISECONDS);
 		if (!pool.isShutdown()) {

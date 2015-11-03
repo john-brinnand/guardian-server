@@ -40,7 +40,7 @@ import spongecell.guardian.application.GuardianResourceConfiguration;
 @EnableWebMvc
 @WebAppConfiguration
 @ContextConfiguration(classes = { spongecell.guardian.application.GuardianApplication.class })
-public class WatcherResourceTest extends AbstractTestNGSpringContextTests {
+public class GuardianResourceTest extends AbstractTestNGSpringContextTests {
 	private String data;
 	private final static String BASE_URI = "/v1/guardian";
 	private final static String PING = "ping";
