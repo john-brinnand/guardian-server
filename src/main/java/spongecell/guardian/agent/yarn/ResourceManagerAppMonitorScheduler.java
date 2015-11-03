@@ -4,8 +4,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -22,7 +20,6 @@ import org.springframework.util.Assert;
 @EnableConfigurationProperties({ ResourceManagerAppMonitorSchedulerConfiguration.class })
 public class ResourceManagerAppMonitorScheduler {
 	@Autowired ResourceManagerAppMonitorSchedulerConfiguration config;
-//	private final ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
 	private final ExecutorService pool = Executors.newScheduledThreadPool(1);
 	private Future<?> future; 
 	private Agent agent;
@@ -51,7 +48,7 @@ public class ResourceManagerAppMonitorScheduler {
 					final long startTime = System.currentTimeMillis();
 					agent.getStatus();
 					endTime = System.currentTimeMillis();
-					log.info("------------------  Monitor Completed  in {} {} ", 
+					log.info("------------------  Agent action completed  in {} {} ", 
 							endTime - startTime, TimeUnit.MILLISECONDS.toString().toLowerCase());
 					try {
 						Thread.sleep(5000);

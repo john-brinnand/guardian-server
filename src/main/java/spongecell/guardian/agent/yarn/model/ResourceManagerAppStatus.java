@@ -1,7 +1,6 @@
 package spongecell.guardian.agent.yarn.model;
 
 import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.APP;
-import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.FINAL_STATUS;
 import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.STATE;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,8 +50,8 @@ public class ResourceManagerAppStatus {
 		((ObjectNode)node.get("app")).put("queue", appStatus.get("app").get("queue").asText());
 		((ObjectNode)node.get("app")).put("finalStatus", 
 				appStatus.get("app").get("finalStatus").asText());	
-			((ObjectNode)node.get("app")).put("finalStatus", 
-				appStatus.get("app").get("finalStatus").asText());	
+		((ObjectNode)node.get("app")).put("progress", 
+				appStatus.get("app").get("progress").asText());	
 		((ObjectNode)node.get("app")).put("applicationType", 
 				appStatus.get("app").get("applicationType").asText());	
 		((ObjectNode)node.get("app")).put("startedTime", 

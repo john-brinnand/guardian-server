@@ -39,6 +39,7 @@ public class ResourceManagerSchedulerYarnAgentTest extends AbstractTestNGSpringC
 		scheduler.shutdown();
 		log.info("Executor service shutdown status is: {}", scheduler.getPool().isShutdown());
 	}	
+	
 	/**
 	 * Note: this test requires that the wordcount map-reduce
 	 * job is running on the local cluster. And this in turn

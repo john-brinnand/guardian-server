@@ -71,7 +71,8 @@ public class YarnResourceManagerAgent implements Agent {
 		JsonNode appStatus = null;
 		String runState = ""; 
 		String finalStatus = ""; 
-		boolean validation = false; 	
+		int interval = 5;
+		int count = 0;
 		
 		do {
 			log.info("********** Getting the applications' status.**********");
@@ -81,13 +82,13 @@ public class YarnResourceManagerAgent implements Agent {
 				
 				runState = appStatus.get(APP).get(STATE).asText();
 				finalStatus = appStatus.get(APP).get(FINAL_STATUS).asText();
+				int mod = count % interval;
 				
 				if (runState.equals(RunStates.RUNNING.name()) && 
-					finalStatus.equals(RunStates.UNDEFINED.name()) && 
-					validation == false) {
+					finalStatus.equals(RunStates.UNDEFINED.name()) && mod == 0) {
 					validateYarnMonitorRules(appStatus);
-					validation = true;
 				}
+				count++;
 			} catch (IllegalStateException | IOException | InterruptedException e) {
 				if (e instanceof InterruptedException) {
 					log.info("App monitor interrupted. Exiting...");
