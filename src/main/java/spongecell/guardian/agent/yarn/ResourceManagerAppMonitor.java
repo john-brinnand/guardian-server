@@ -95,7 +95,7 @@ public class ResourceManagerAppMonitor {
 			// **************************
 			InputStream is = response.getEntity().getContent();
 			appId = getUserAppId(users, is);
-			Thread.sleep(1000);
+			Thread.sleep(3000);
 			log.info("AppId is: {} ", appId);
 			response.close();
 			retryCount--;

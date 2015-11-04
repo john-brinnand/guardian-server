@@ -1,5 +1,9 @@
 package spongecell.guardian.agent.yarn;
 
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.APP;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.FINAL_STATUS;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.STATE;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 
 import spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.RunStates;
 import spongecell.guardian.agent.yarn.exception.YarnResourceManagerException;
@@ -23,8 +28,6 @@ import spongecell.guardian.notification.SlackGuardianWebHook;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.*;
 
 /**
  * @author jbrinnand
@@ -146,4 +149,9 @@ public class YarnResourceManagerAgent implements Agent {
 		kieSession.fireAllRules();
 		kieSession.dispose();
 	}	
+	
+	@Bean(name="yarnResourceManagerAgent")
+	public Agent buildAgent() {
+		return new YarnResourceManagerAgent();
+	}
 }

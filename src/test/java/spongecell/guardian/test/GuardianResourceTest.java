@@ -95,6 +95,9 @@ public class GuardianResourceTest extends AbstractTestNGSpringContextTests {
 		
 		Assert.assertEquals(mvcResult.getResponse().getContentAsString(),
 				"Greetings " + senderId + " from the postRequestParamEndpoint");
+		
+		Thread.sleep(90000);
+		
 	}	
 	
 	@Test(priority = 1, groups = "integration")
@@ -121,6 +124,7 @@ public class GuardianResourceTest extends AbstractTestNGSpringContextTests {
 		Assert.assertEquals(mvcResult.getResponse().getContentAsString(),
 				senderId + ":" + "testValue");
 	}	
+	
 	@Test(priority = 1, groups = "integration")
 	public void validateDeleteRequestParams() throws Exception {
 		MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();

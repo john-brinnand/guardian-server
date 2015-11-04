@@ -3,11 +3,13 @@ package spongecell.guardian.application;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,17 +17,23 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import spongecell.guardian.agent.yarn.Agent;
+import spongecell.guardian.agent.yarn.ResourceManagerAppMonitorScheduler;
+
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
 
 @Slf4j
 @RestController
 @RequestMapping("/v1/guardian")
 public class GuardianResource {
-
-	@PostConstruct
-	public void loadCoreSessions() {
-		
+	private @Autowired ResourceManagerAppMonitorScheduler scheduler;
+	@Autowired private ApplicationContext appContext;
+	
+	@PreDestroy 
+	public void shutdown () throws InterruptedException {
+		scheduler.shutdown();
 	}
+	
 	@RequestMapping("/ping")
 	public ResponseEntity<?> icmpEcho(HttpServletRequest request) throws Exception {
 		InputStream is = request.getInputStream();
@@ -37,6 +45,25 @@ public class GuardianResource {
 	
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<?> postRequestParamEndpoint(HttpServletRequest request,
+			@RequestParam(value = "id") String id) throws Exception {
+		// TODO the agent should be discoverable and 
+		// configurable at run time. Should Spring's 
+		// applicationContext be used to instantiate the Bean 
+		// and the fluent API to configure it?
+		// agent.addGroupId().addArtifactId()
+		//      .addVersion().addOther().build();
+		//***************************************************
+		Agent agent = (Agent)appContext.getBean("yarnResourceManagerAgent");
+		scheduler.setAgent(agent);
+		scheduler.run();	
+		String content = "Greetings " + id  + " from the postRequestParamEndpoint"; 
+		log.info("Returning : {} ", content);
+		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
+		return response; 
+	}	
+	
+	@RequestMapping(method = RequestMethod.PUT)
+	public ResponseEntity<?> putRequestParamEndpoint(HttpServletRequest request,
 			@RequestParam(value = "id") String id) throws Exception {
 		String content = "Greetings " + id  + " from the postRequestParamEndpoint"; 
 		log.info("Returning : {} ", content);
@@ -70,7 +97,7 @@ public class GuardianResource {
 		if (op.equals("start")) {
 			content = "Starting the monitor"; 
 		}
-		log.info("Returnin : {} ", content);
+		log.info("Returning : {} ", content);
 		ResponseEntity<String> response = new ResponseEntity<String>(content, HttpStatus.OK);
 		return response; 
 	}	

@@ -17,7 +17,7 @@ rule "Yarn.ResourceManager.Monitor.1"
     then
         System.out.println(drools.getRule().getName() + " App State is: " + 
         	$rmAppStatus.getState() + " App Final Status is: " + 
-        	$rmAppStatus.getStatus());
+        	$rmAppStatus.getFinalStatus());
       	modify ($rmSlackClient) {
         	setSendMsg(Boolean.FALSE),	
         	setMessageSent(Boolean.TRUE),	

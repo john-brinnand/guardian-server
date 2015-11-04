@@ -2,6 +2,7 @@ package spongecell.guardian.agent.yarn.model;
 
 import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.APP;
 import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.STATE;
+import static spongecell.guardian.agent.yarn.ResourceManagerAppMonitorConfiguration.FINAL_STATUS;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,16 +26,8 @@ public class ResourceManagerAppStatus {
 		return appStatus.get(APP).get(STATE).asText();
 	}
 	
-	public String getStatus () {
-		ObjectNode node =  JsonNodeFactory.instance.objectNode();
-		node.set("app", JsonNodeFactory.instance.objectNode());
-		
-		((ObjectNode)node.get("app")).put("user", appStatus.get("app").get("user").asText());
-		((ObjectNode)node.get("app")).put("name", appStatus.get("app").get("name").asText());
-		((ObjectNode)node.get("app")).put("state", appStatus.get("app").get("state").asText());
-		((ObjectNode)node.get("app")).put("queue", appStatus.get("app").get("queue").asText());
-	
-		return node.asText(); 
+	public String getFinalStatus () {
+		return appStatus.get(APP).get(FINAL_STATUS).asText();
 	}	
 	
 	public String getManagedObject() {

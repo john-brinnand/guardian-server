@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.junit.Assert;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
@@ -25,6 +24,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.conf.ClockTypeOption;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.Assert;
 
 /**
  * @author jbrinnand
@@ -177,6 +177,8 @@ public class KieMemoryFileSystemSessionHandler {
 		KieModuleModel kieModuleModel,
 		ReleaseId releaseId) {
 		
+		log.info("Rules path is: {} ", rulesPath);
+		
 	    // Write the rules to the MFS - Memory File System.
 	    //*********************************************************
 		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();		
@@ -184,18 +186,21 @@ public class KieMemoryFileSystemSessionHandler {
 		for (String rule : rules) {
 			InputStream ruleIn = getClass().getResourceAsStream(
 					"/" + rulesPath + "/" + rule);
-			Assert.assertNotNull(ruleIn);
+			log.info("Rules path is: {} ", rulesPath);
+			Assert.isTrue(ruleIn != null, 
+				"InputStream is null. Probable cause: Rules Resource "
+				+ "Path is invalid: " + rulesPath);
 			String path = basePath + "/"  + rulesPath + "/" + rule;
 			kieFileSystem.write(path,
 					kieResources.newInputStreamResource(ruleIn, "UTF-8"));
 		}	
-	    // Write the Module to the MFS - Memory File System.
-	    //*********************************************************
+	    // Write the Module to the Memory File System (MFS).
+	    //****************************************************
 	    kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
 	    
 	    // Write the pom to the MFS - Memory File System.
 	    // Note: without this step, the Module cannot be accessed.
-	    //*********************************************************
+	    //********************************************************
 	    kieFileSystem.generateAndWritePomXML(releaseId);
 	    log.info(kieModuleModel.toXML());
 	    
